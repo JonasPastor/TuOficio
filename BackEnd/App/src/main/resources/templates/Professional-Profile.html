@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil Profesional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f7f7f7;
+            padding: 20px;
+        }
+
+        .profile-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-info h1 {
+            font-size: 28px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .profile-specialty {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .profile-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 18px;
+        }
+
+        .rating-value {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .btn-chat {
+            padding: 12px 24px;
+            background: #005fff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-chat:hover {
+            background: #0052cc;
+        }
+
+        .btn-chat:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .profile-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .profile-section h2 {
+            font-size: 20px;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .profile-section p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .especialidades {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .especialidad-tag {
+            padding: 8px 16px;
+            background: #e0f2fe;
+            color: #0369a1;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .precio-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .precio {
+            font-size: 24px;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top-color: #005fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover {
+            color: #111827;
+        }
+    </style>
+</head>
+<body>
+<a href="javascript:history.back()" class="btn-back">
+    ← Volver atrás
+</a>
+
+<div id="loadingContainer" class="loading">
+    <div class="spinner"></div>
+</div>
+
+<div id="profileContainer" class="profile-container" style="display: none;">
+    <div class="profile-header">
+        <div class="profile-avatar" id="professionalAvatar">
+            <!-- Avatar se carga dinámicamente -->
+        </div>
+        <div class="profile-info">
+            <h1 id="professionalName">Cargando...</h1>
+            <div class="profile-specialty" id="professionalSpecialty"></div>
+            <div class="profile-rating" id="ratingSection" style="display: none;">
+                <div class="stars" id="starsDisplay">★★★★★</div>
+                <span class="rating-value" id="ratingValue"></span>
+            </div>
+            <button class="btn-chat" onclick="startChat()" id="chatBtn">
+                💬 Iniciar Conversación
+            </button>
+        </div>
+    </div>
+
+    <div class="profile-section">
+        <h2>Especialidades</h2>
+        <div class="especialidades" id="especialidadesList">
+            <!-- Especialidades se cargan dinámicamente -->
+        </div>
+    </div>
+
+    <div class="profile-section">
+        <h2>Rango de Precios</h2>
+        <div class="precio-section">
+            <span class="precio" id="precioRange">$0 - $0</span>
+            <span style="color: #6b7280;">(Aproximado por servicio)</span>
+        </div>
+    </div>
+
+    <div class="profile-section">
+        <h2>Información de Contacto</h2>
+        <p><strong>Teléfono:</strong> <span id="telefono">-</span></p>
+        <p><strong>Email:</strong> <span id="email">-</span></p>
+    </div>
+
+    <div class="profile-section">
+        <h2>Disponibilidad</h2>
+        <p id="disponibilidad">Lunes a Viernes: 9:00 - 18:00</p>
+    </div>
+</div>
+
+<div id="errorContainer" style="display: none; max-width: 900px; margin: 40px auto;">
+    <div class="error-message" id="errorMessage"></div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8081/api/v1';
+    const CHAT_API_URL = 'http://localhost:8081/api/v1/chat';
+
+    // ⚠️ Obtener ID del profesional desde la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const PROFESSIONAL_ID = urlParams.get('idProfesional') || '1'; // Default para testing
+
+    // ⚠️ Obtener usuario autenticado desde localStorage/sessionStorage
+    const CURRENT_USER_ID = localStorage.getItem('userId') || '7'; // Default para testing
+
+    async function loadProfessionalData() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/perfil/profesional/${PROFESSIONAL_ID}`);
+
+            if (!response.ok) {
+                throw new Error('Profesional no encontrado');
+            }
+
+            const data = await response.json();
+
+            // Ocultar loading y mostrar perfil
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('profileContainer').style.display = 'block';
+
+            // ✅ Cargar datos del profesional
+            document.getElementById('professionalName').textContent = `${data.nombre} ${data.apellido}`;
+            document.getElementById('professionalSpecialty').textContent = data.oficio || 'Profesional';
+            document.getElementById('telefono').textContent = data.telefono || 'No disponible';
+            document.getElementById('email').textContent = data.mail || 'No disponible';
+
+            // ✅ Avatar
+            const avatarContainer = document.getElementById('professionalAvatar');
+            if (data.avatar) {
+                avatarContainer.innerHTML = `<img src="${data.avatar}" alt="${data.nombre}">`;
+            } else {
+                const initial = data.nombre.charAt(0).toUpperCase();
+                avatarContainer.textContent = initial;
+            }
+
+            // ✅ Especialidades
+            const especialidadesList = document.getElementById('especialidadesList');
+            if (data.especialidades && data.especialidades.length > 0) {
+                especialidadesList.innerHTML = data.especialidades
+                    .map(esp => `<div class="especialidad-tag">${esp}</div>`)
+                    .join('');
+            } else {
+                especialidadesList.innerHTML = '<p style="color: #6b7280;">Sin especialidades registradas</p>';
+            }
+
+            // ✅ Precios
+            if (data.precioMin && data.precioMax) {
+                document.getElementById('precioRange').textContent =
+                    `$${data.precioMin.toLocaleString()} - $${data.precioMax.toLocaleString()}`;
+            } else {
+                document.getElementById('precioRange').textContent = 'Consultar';
+            }
+
+        } catch (error) {
+            console.error('Error al cargar perfil:', error);
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('errorContainer').style.display = 'block';
+            document.getElementById('errorMessage').textContent =
+                error.message || 'Error al cargar el perfil del profesional';
+        }
+    }
+
+    async function startChat() {
+        const btn = document.getElementById('chatBtn');
+        btn.disabled = true;
+        btn.textContent = 'Iniciando chat...';
+
+        try {
+            // ✅ Crear conversación con el profesional
+            const response = await fetch(`${CHAT_API_URL}/conversations/with-professional`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: CURRENT_USER_ID,
+                    professionalId: PROFESSIONAL_ID
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al crear conversación');
+            }
+
+            const data = await response.json();
+
+            // ✅ Redirigir al chat con el canal abierto
+            window.location.href = `Chat-App.html?userId=${CURRENT_USER_ID}&channelId=${data.channelId}&channelType=${data.channelType}`;
+
+        } catch (error) {
+            console.error('Error al iniciar chat:', error);
+            alert('Error al iniciar la conversación. Por favor, intenta nuevamente.');
+            btn.disabled = false;
+            btn.innerHTML = '💬 Iniciar Conversación';
+        }
+    }
+
+    // Cargar datos al abrir la página
+    loadProfessionalData();
+</script>
+</body>
+</html>

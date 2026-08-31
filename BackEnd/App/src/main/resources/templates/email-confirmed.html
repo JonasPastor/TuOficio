@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta Confirmada - Tu Oficio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #27ae60;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .title {
+            color: #27ae60;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .message {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+
+        .benefits {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .benefits h3 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .benefits ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            color: #555;
+        }
+
+        .benefits li::before {
+            content: "✅";
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .action-buttons {
+            margin-top: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2ecc71;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 12px 25px;
+                font-size: 14px;
+                margin: 5px;
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Tu Oficio</div>
+
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M9,20.42L2.79,14.21L5.21,11.79L9,15.58L18.79,5.79L21.21,8.21L9,20.42Z"/>
+            </svg>
+        </div>
+
+        <h1 class="title">¡Cuenta Confirmada!</h1>
+        <p class="subtitle">Tu registro se ha completado exitosamente</p>
+
+        <div class="message">
+            <p>¡Excelente! Tu dirección de correo electrónico ha sido verificada correctamente.</p>
+            <p>Ya puedes acceder a todas las funcionalidades de <strong>Tu Oficio</strong> y comenzar a disfrutar de nuestros servicios.</p>
+        </div>
+
+        <div class="benefits">
+            <h3>🎉 Ahora puedes:</h3>
+            <ul>
+                <li>Acceder a tu cuenta con tu email y contraseña</li>
+                <li>Buscar y contratar profesionales verificados</li>
+                <li>Gestionar tus solicitudes de servicio</li>
+                <li>Registrarte como profesional (opcional)</li>
+                <li>Procesar pagos de forma segura</li>
+                <li>Recibir notificaciones importantes</li>
+            </ul>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{loginUrl}}" class="btn btn-primary">Iniciar Sesión</a>
+            <a href="{{homeUrl}}" class="btn btn-secondary">Ir al Inicio</a>
+        </div>
+
+        <div class="footer">
+            <p><strong>¿Necesitas ayuda?</strong></p>
+            <p>Contáctanos si tienes alguna pregunta sobre tu cuenta</p>
+            <p>&copy; 2025 Tu Oficio. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
+

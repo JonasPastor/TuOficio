@@ -1,0 +1,14 @@
+{
+  "idUsuario": 1,
+  "fechaDesde": "2025-10-29",
+  "fechaHasta": null,
+  "idOficio": 1,
+  "precioMin": 5000,
+  "precioMax": 15000,
+  "especialidades": [
+    "Instalación eléctrica residencial",
+    "Reparación de tableros",
+    "Instalación de iluminación LED"
+  ]
+}
+

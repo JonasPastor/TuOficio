@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar Cuenta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #27ae60;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2ecc71;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .highlight {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+        }
+        .link-backup {
+            word-break: break-all;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Tu Oficio</div>
+            <h1 class="title">¡Bienvenido/a!</h1>
+        </div>
+
+        <div class="content">
+            <p>Hola <strong>{{nombre}} {{apellido}}</strong>,</p>
+
+            <p>¡Gracias por registrarte en nuestra plataforma! Estamos emocionados de tenerte como parte de nuestra comunidad.</p>
+
+            <div class="highlight">
+                <p><strong>Para completar tu registro, necesitas confirmar tu dirección de correo electrónico.</strong></p>
+            </div>
+
+            <p>Haz clic en el botón de abajo para activar tu cuenta:</p>
+
+            <div style="text-align: center;">
+                <a href="{{confirmationLink}}" class="button">Confirmar mi cuenta</a>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Importante:</strong> Este enlace expirará en 24 horas por motivos de seguridad.
+            </div>
+
+            <p>Si el botón no funciona, puedes copiar y pegar el siguiente enlace en tu navegador:</p>
+            <p class="link-backup">
+                {{confirmationLink}}
+            </p>
+
+            <p>Una vez confirmada tu cuenta, podrás:</p>
+            <ul>
+                <li>✅ Acceder a todos los servicios de la plataforma</li>
+                <li>✅ Contratar profesionales verificados</li>
+                <li>✅ Registrarte como profesional (opcional)</li>
+                <li>✅ Gestionar tus pagos y facturas</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Si no te registraste en nuestra plataforma, puedes ignorar este correo.</p>
+            <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
+            <p>&copy; 2025 Tu Oficio. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

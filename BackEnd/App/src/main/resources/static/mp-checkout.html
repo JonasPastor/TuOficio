@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prueba MercadoPago Checkout - Sandbox</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 1rem; margin: 1rem 0; }
+    .warning-box { background: #fff3e0; border-left: 4px solid #ff9800; padding: 1rem; margin: 1rem 0; }
+    .success-box { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 1rem; margin: 1rem 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f5f5f5; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+    button { background: #2196f3; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #1976d2; }
+    input, select { padding: 5px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Prueba MercadoPago Checkout - SANDBOX</h1>
+
+  <div class="info-box">
+    <strong>ℹ️ Modo Sandbox Activo</strong><br>
+    Backend: <span id="backendUsed"></span><br>
+    <button onclick="checkMode()" style="margin-top:0.5rem; padding:5px 10px;">Verificar configuración</button>
+    <div id="modeInfo" style="margin-top:0.5rem;"></div>
+  </div>
+
+  <div class="warning-box">
+    <strong>⚠️ IMPORTANTE - Cómo pagar en Sandbox:</strong>
+    <ol>
+      <li><strong>NO uses tu cuenta real de MercadoPago</strong></li>
+      <li>Abre el checkout en una <strong>ventana de incógnito</strong></li>
+      <li>Selecciona <strong>"Pagar como invitado"</strong> o usa el usuario comprador de prueba</li>
+      <li>Usa una de las tarjetas de prueba de abajo</li>
+    </ol>
+  </div>
+
+  <h2>📝 Crear Preferencia de Pago</h2>
+  <form id="prefForm">
+    <label>Backend:
+      <select id="backendSelect">
+        <option value="http://localhost:8081">App (http://localhost:8081)</option>
+        <option value="http://localhost:8080">Gateway (http://localhost:8080)</option>
+      </select>
+    </label>
+    <br>
+    <label>ID Solicitud: <input type="number" id="idSolicitud" value="123"></label><br>
+    <label>Título: <input type="text" id="titulo" value="Servicio prueba" size="40"></label><br>
+    <label>Descripción: <input type="text" id="descripcion" value="Prueba de integración" size="40"></label><br>
+    <label>Monto: <input type="number" id="monto" value="100"></label><br>
+    <label>Cantidad: <input type="number" id="cantidad" value="1"></label><br>
+    <button type="submit">Crear preferencia y pagar</button>
+  </form>
+
+  <div id="result" style="white-space:pre-wrap; margin-top:1rem; background:#f5f5f5; padding:1rem; border-radius:4px;"></div>
+
+  <div class="success-box">
+    <h3>💳 Tarjetas de Prueba (Sandbox)</h3>
+    <p><strong>Usa estas tarjetas en el checkout:</strong></p>
+    <table>
+      <tr>
+        <th>Tipo</th>
+        <th>Número</th>
+        <th>CVV</th>
+        <th>Vencimiento</th>
+        <th>Titular</th>
+        <th>Resultado</th>
+      </tr>
+      <tr>
+        <td>Visa</td>
+        <td><code>4509 9535 6623 3704</code></td>
+        <td><code>123</code></td>
+        <td><code>11/25</code></td>
+        <td><code>APRO</code></td>
+        <td>✅ Aprobado</td>
+      </tr>
+      <tr>
+        <td>Mastercard</td>
+        <td><code>5031 7557 3453 0604</code></td>
+        <td><code>123</code></td>
+        <td><code>11/25</code></td>
+        <td><code>APRO</code></td>
+        <td>✅ Aprobado</td>
+      </tr>
+      <tr>
+        <td>Visa</td>
+        <td><code>4013 5406 8274 6260</code></td>
+        <td><code>123</code></td>
+        <td><code>11/25</code></td>
+        <td><code>OTHE</code></td>
+        <td>❌ Rechazado</td>
+      </tr>
+      <tr>
+        <td>Visa</td>
+        <td><code>4235 6477 2802 5682</code></td>
+        <td><code>123</code></td>
+        <td><code>11/25</code></td>
+        <td><code>FUND</code></td>
+        <td>💰 Sin fondos</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="info-box">
+    <h3>👤 Usuarios de Prueba (opcional)</h3>
+    <p><strong>Usuario Comprador (Buyer):</strong></p>
+    <ul>
+      <li>Usuario: <code>TESTUSER6675258950908548968</code></li>
+      <li>Contraseña: <code>uqvqdJl1dh</code></li>
+    </ul>
+    <p><strong>Usuario Vendedor (Seller):</strong></p>
+    <ul>
+      <li>Usuario: <code>TESTUSER4325153328197081876</code></li>
+      <li>Contraseña: <code>Fh3f0uXafQ</code></li>
+    </ul>
+    <p><em>Nota: Las credenciales del vendedor ya están configuradas en el backend. Para pagar, usa el comprador o paga como invitado.</em></p>
+  </div>
+
+  <script>
+    const defaultBackends = [
+      { name: "App (8081)", url: "http://localhost:8081" },
+      { name: "Gateway (8080)", url: "http://localhost:8080" }
+    ];
+
+    const backendSelect = document.getElementById('backendSelect');
+    const backendUsedText = document.getElementById('backendUsed');
+
+    let baseUrl = window.location.origin;
+    if (!baseUrl.includes('localhost:8081') && !baseUrl.includes('localhost:8080')) {
+      baseUrl = defaultBackends[0].url;
+    }
+
+    backendSelect.value = baseUrl;
+    backendUsedText.innerText = baseUrl;
+
+    backendSelect.addEventListener('change', () => {
+      baseUrl = backendSelect.value;
+      backendUsedText.innerText = baseUrl;
+    });
+
+    async function checkMode() {
+      try {
+        const res = await fetch(baseUrl + '/api/v1/pagos/mode');
+        if (!res.ok) {
+          document.getElementById('modeInfo').innerHTML = '<span style="color:red;">❌ Error: ' + res.status + '</span>';
+          return;
+        }
+        const data = await res.json();
+        const sandboxText = data.sandbox ? '✅ Sandbox (Prueba)' : '⚠️ Producción';
+        document.getElementById('modeInfo').innerHTML =
+          '<strong>Modo:</strong> ' + sandboxText + '<br>' +
+          '<strong>Token:</strong> ' + data.accessTokenPreview + '<br>' +
+          '<strong>Public Key:</strong> ' + data.publicKey;
+      } catch (err) {
+        document.getElementById('modeInfo').innerHTML = '<span style="color:red;">❌ ' + err.message + '</span>';
+      }
+    }
+
+    document.getElementById('prefForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        idSolicitud: parseInt(document.getElementById('idSolicitud').value),
+        titulo: document.getElementById('titulo').value,
+        descripcion: document.getElementById('descripcion').value,
+        monto: parseFloat(document.getElementById('monto').value),
+        cantidad: parseInt(document.getElementById('cantidad').value)
+      };
+
+      document.getElementById('result').innerText = 'Creando preferencia...';
+
+      try {
+        const res = await fetch(baseUrl + '/api/v1/pagos/crear-preferencia', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          document.getElementById('result').innerText = 'Error al crear preferencia: ' + res.status + '\n' + text;
+          return;
+        }
+
+        const data = await res.json();
+        document.getElementById('result').innerText = 'Respuesta:\n' + JSON.stringify(data, null, 2) + '\n\n✅ Abriendo checkout en nueva pestaña...\n\n⚠️ RECUERDA: Usa ventana incógnito y paga como invitado con las tarjetas de prueba.';
+
+        if (data && data.initPoint) {
+          window.open(data.initPoint, '_blank');
+        } else {
+          alert('initPoint no disponible en la respuesta');
+        }
+
+      } catch (err) {
+        document.getElementById('result').innerText = 'Exception: ' + err.message + '\nComprueba que el backend esté corriendo en ' + baseUrl;
+      }
+    });
+
+    // Auto-check mode on load
+    window.addEventListener('load', checkMode);
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Database configuration files
+docker-compose.yml
+.env
+*.env
+.env.*
+!.env.example
+
+# Database dumps and backups
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+
+# Database connection files
+application.yml
+application.properties
+application-*.yml
+application-*.properties
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+target/
+*.log
+
+# Security files
+*.key
+*.pem
+*.crt
+*.p12
+*.jks

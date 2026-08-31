@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat en Tiempo Real</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-width: 400px;
+        }
+
+        .login-box h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #5568d3;
+        }
+
+        .btn-login:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #chat-screen {
+            display: none;
+            height: 100vh;
+            background: #f5f5f5;
+        }
+
+        .chat-header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+        }
+
+        .btn-logout {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .chat-container {
+            height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+        }
+
+        .message-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e4e8;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input-container input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .btn-send {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .message-item {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-item.own {
+            align-items: flex-end;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message-item.own .message-bubble {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-item:not(.own) .message-bubble {
+            background: #f1f3f5;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+<!-- Pantalla de Login -->
+<div id="login-screen">
+    <div class="login-box">
+        <h1>💬 Chat</h1>
+        <div class="form-group">
+            <label>User ID:</label>
+            <input type="text" id="userId" placeholder="Ingresa tu ID de usuario">
+        </div>
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="userName" placeholder="Tu nombre">
+        </div>
+        <button class="btn-login" onclick="login()" id="loginBtn">
+            Ingresar al Chat
+        </button>
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+</div>
+
+<!-- Pantalla de Chat -->
+<div id="chat-screen">
+    <div class="chat-header">
+        <h2>💬 Chat General</h2>
+        <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+    <div class="chat-container">
+        <div class="message-list" id="messageList"></div>
+        <div class="message-input-container">
+            <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Escribe un mensaje..."
+                    onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn-send" onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Stream Chat JS - CDN CORRECTO -->
+<script src="https://cdn.stream.io/stream-chat-js/latest/stream-chat.min.js"></script>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8081/api/v1/chat';
+    let chatClient;
+    let currentChannel;
+
+    async function login() {
+        const userId = document.getElementById('userId').value.trim();
+        const userName = document.getElementById('userName').value.trim();
+        const errorMessage = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+
+        errorMessage.textContent = '';
+
+        if (!userId || !userName) {
+            errorMessage.textContent = 'Por favor completa todos los campos';
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Conectando...';
+
+        try {
+            // 1. Crear/actualizar usuario en Stream
+            await fetch(`${API_BASE_URL}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: userId,
+                    nombre: userName,
+                    email: `${userId}@example.com`
+                })
+            });
+
+            // 2. Obtener configuración de chat
+            const initResponse = await fetch(`${API_BASE_URL}/init?userId=${userId}`);
+            const initData = await initResponse.json();
+
+            // 3. Inicializar Stream Chat Client
+            chatClient = new StreamChat.StreamChat(initData.apiKey);
+
+            // 4. Conectar usuario
+            await chatClient.connectUser(
+                { id: userId, name: userName },
+                initData.token
+            );
+
+            // 5. Obtener canal general
+            currentChannel = chatClient.channel('messaging', 'general', {
+                name: 'Chat General',
+                members: [userId]
+            });
+
+            await currentChannel.watch();
+
+            // 6. Mostrar pantalla de chat
+            showChatScreen();
+
+        } catch (error) {
+            console.error('Error al conectar:', error);
+            errorMessage.textContent = `Error: ${error.message}`;
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Ingresar al Chat';
+        }
+    }
+
+    function showChatScreen() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('chat-screen').style.display = 'block';
+
+        loadMessages();
+        listenToNewMessages();
+    }
+
+    async function loadMessages() {
+        try {
+            const messages = await currentChannel.query({
+                messages: { limit: 50 }
+            });
+
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+
+            messages.messages.forEach(msg => {
+                addMessageToList(msg);
+            });
+
+            scrollToBottom();
+        } catch (error) {
+            console.error('Error al cargar mensajes:', error);
+        }
+    }
+
+    function listenToNewMessages() {
+        currentChannel.on('message.new', event => {
+            addMessageToList(event.message);
+        });
+    }
+
+    function addMessageToList(message) {
+        const messageList = document.getElementById('messageList');
+        const isOwnMessage = message.user.id === chatClient.user.id;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message-item ${isOwnMessage ? 'own' : ''}`;
+
+        messageDiv.innerHTML = `
+                <div class="message-header">
+                    ${!isOwnMessage ? `<strong style="color: #667eea; font-size: 14px;">${message.user.name || message.user.id}</strong>` : ''}
+                    <small style="color: #868e96; font-size: 12px;">${new Date(message.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</small>
+                </div>
+                <div class="message-bubble">
+                    ${message.text}
+                </div>
+            `;
+
+        messageList.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        try {
+            await currentChannel.sendMessage({ text });
+            input.value = '';
+        } catch (error) {
+            console.error('Error al enviar mensaje:', error);
+            alert('Error al enviar mensaje: ' + error.message);
+        }
+    }
+
+    function scrollToBottom() {
+        const messageList = document.getElementById('messageList');
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    async function logout() {
+        if (chatClient) {
+            await chatClient.disconnectUser();
+        }
+        document.getElementById('chat-screen').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('userId').value = '';
+        document.getElementById('userName').value = '';
+        document.getElementById('loginBtn').disabled = false;
+        document.getElementById('loginBtn').textContent = 'Ingresar al Chat';
+    }
+</script>
+</body>
+</html>

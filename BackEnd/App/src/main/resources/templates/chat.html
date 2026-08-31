@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Stream Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            color: #155724;
+            display: none;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+            opacity: 0;
+        }
+
+        .loading.active {
+            opacity: 1;
+        }
+
+        #messagesList {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        #messagesList h3 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .message-item {
+            padding: 12px;
+            margin: 10px 0;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .message-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .message-item .message-text {
+            color: #495057;
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .message-item small {
+            color: #868e96;
+            font-size: 0.85em;
+        }
+
+        .empty-messages {
+            text-align: center;
+            color: #868e96;
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚀 Chat - Integración con Stream</h1>
+
+    <!-- Generar Token -->
+    <div class="section">
+        <h2>1. Generar Token de Usuario</h2>
+        <div class="form-group">
+            <label>User ID:</label>
+            <input type="text" id="tokenUserId" placeholder="Ej: usuario123">
+        </div>
+        <button onclick="generateToken()">Generar Token <span class="loading" id="loading1">⏳</span></button>
+        <div class="response" id="tokenResponse"></div>
+    </div>
+
+    <!-- Crear Usuario -->
+    <div class="section">
+        <h2>2. Crear/Actualizar Usuario</h2>
+        <div class="form-group">
+            <label>User ID:</label>
+            <input type="text" id="createUserId" placeholder="Ej: usuario123">
+        </div>
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="userName" placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="userEmail" placeholder="Ej: juan@ejemplo.com">
+        </div>
+        <div class="form-group">
+            <label>URL Imagen (opcional):</label>
+            <input type="text" id="userImage" placeholder="https://...">
+        </div>
+        <button onclick="createUser()">Crear Usuario <span class="loading" id="loading2">⏳</span></button>
+        <div class="response" id="userResponse"></div>
+    </div>
+
+    <!-- Crear Canal -->
+    <div class="section">
+        <h2>3. Crear Canal</h2>
+        <div class="form-group">
+            <label>Tipo de Canal:</label>
+            <input type="text" id="channelType" value="messaging" placeholder="messaging, team, etc.">
+        </div>
+        <div class="form-group">
+            <label>Channel ID:</label>
+            <input type="text" id="channelId" placeholder="Ej: canal-general">
+        </div>
+        <div class="form-group">
+            <label>Creator ID:</label>
+            <input type="text" id="creatorId" placeholder="Ej: usuario123">
+        </div>
+        <button onclick="createChannel()">Crear Canal <span class="loading" id="loading3">⏳</span></button>
+        <div class="response" id="channelResponse"></div>
+    </div>
+
+    <!-- Agregar Miembros -->
+    <div class="section">
+        <h2>4. Agregar Miembros a Canal</h2>
+        <div class="form-group">
+            <label>Tipo de Canal:</label>
+            <input type="text" id="memberChannelType" value="messaging">
+        </div>
+        <div class="form-group">
+            <label>Channel ID:</label>
+            <input type="text" id="memberChannelId" placeholder="Ej: canal-general">
+        </div>
+        <div class="form-group">
+            <label>User IDs (separados por coma):</label>
+            <input type="text" id="memberUserIds" placeholder="Ej: user1,user2,user3">
+        </div>
+        <button onclick="addMembers()">Agregar Miembros <span class="loading" id="loading4">⏳</span></button>
+        <div class="response" id="membersResponse"></div>
+    </div>
+
+    <!-- Enviar Mensaje -->
+    <div class="section">
+        <h2>5. Enviar Mensaje</h2>
+        <div class="form-group">
+            <label>Tipo de Canal:</label>
+            <input type="text" id="msgChannelType" value="messaging">
+        </div>
+        <div class="form-group">
+            <label>Channel ID:</label>
+            <input type="text" id="msgChannelId" placeholder="Ej: canal-general">
+        </div>
+        <div class="form-group">
+            <label>User ID:</label>
+            <input type="text" id="msgUserId" placeholder="Ej: usuario123">
+        </div>
+        <div class="form-group">
+            <label>Mensaje:</label>
+            <textarea id="msgText" placeholder="Escribe tu mensaje aquí..."></textarea>
+        </div>
+        <button onclick="sendMessage()">Enviar Mensaje <span class="loading" id="loading5">⏳</span></button>
+        <div class="response" id="messageResponse"></div>
+    </div>
+
+    <!-- Ver Mensajes -->
+    <div class="section">
+        <h2>6. Ver Mensajes del Canal</h2>
+        <div class="form-group">
+            <label>Tipo de Canal:</label>
+            <input type="text" id="viewChannelType" value="messaging">
+        </div>
+        <div class="form-group">
+            <label>Channel ID:</label>
+            <input type="text" id="viewChannelId" placeholder="Ej: canal-general">
+        </div>
+        <div class="form-group">
+            <label>Límite de mensajes:</label>
+            <input type="number" id="messageLimit" value="25" min="1" max="100">
+        </div>
+        <button onclick="getMessages()">Ver Mensajes <span class="loading" id="loading6">⏳</span></button>
+        <div class="response" id="messagesResponse"></div>
+        <div id="messagesList"></div>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8081/api/v1/chat';
+
+    function showLoading(loadingId) {
+        document.getElementById(loadingId).classList.add('active');
+    }
+
+    function hideLoading(loadingId) {
+        document.getElementById(loadingId).classList.remove('active');
+    }
+
+    function showResponse(elementId, message, isError = false) {
+        const responseDiv = document.getElementById(elementId);
+        responseDiv.textContent = message;
+        responseDiv.className = isError ? 'response error' : 'response';
+        responseDiv.style.display = 'block';
+    }
+
+    async function generateToken() {
+        const userId = document.getElementById('tokenUserId').value;
+
+        if (!userId) {
+            showResponse('tokenResponse', 'Por favor ingresa un User ID', true);
+            return;
+        }
+
+        showLoading('loading1');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/token?userId=${userId}`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+            showResponse('tokenResponse', `Token generado: ${data.token}`);
+        } catch (error) {
+            showResponse('tokenResponse', `Error: ${error.message}`, true);
+        } finally {
+            hideLoading('loading1');
+        }
+    }
+
+    async function createUser() {
+        const userData = {
+            userId: document.getElementById('createUserId').value,
+            nombre: document.getElementById('userName').value,
+            email: document.getElementById('userEmail').value,
+            imageUrl: document.getElementById('userImage').value
+        };
+
+        if (!userData.userId || !userData.nombre) {
+            showResponse('userResponse', 'User ID y Nombre son obligatorios', true);
+            return;
+        }
+
+        showLoading('loading2');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
+            showResponse('userResponse', `Usuario creado: ${data.userId}`);
+        } catch (error) {
+            showResponse('userResponse', `Error: ${error.message}`, true);
+        } finally {
+            hideLoading('loading2');
+        }
+    }
+
+    async function createChannel() {
+        const channelData = {
+            channelType: document.getElementById('channelType').value,
+            channelId: document.getElementById('channelId').value,
+            creatorId: document.getElementById('creatorId').value
+        };
+
+        if (!channelData.channelType || !channelData.channelId || !channelData.creatorId) {
+            showResponse('channelResponse', 'Todos los campos son obligatorios', true);
+            return;
+        }
+
+        showLoading('loading3');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/channels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(channelData)
+            });
+
+            const data = await response.json();
+            showResponse('channelResponse', `Canal creado: ${data.channelId}`);
+        } catch (error) {
+            showResponse('channelResponse', `Error: ${error.message}`, true);
+        } finally {
+            hideLoading('loading3');
+        }
+    }
+
+    async function addMembers() {
+        const userIdsString = document.getElementById('memberUserIds').value;
+        const memberData = {
+            channelType: document.getElementById('memberChannelType').value,
+            channelId: document.getElementById('memberChannelId').value,
+            userIds: userIdsString.split(',').map(id => id.trim())
+        };
+
+        if (!memberData.channelType || !memberData.channelId || memberData.userIds.length === 0) {
+            showResponse('membersResponse', 'Todos los campos son obligatorios', true);
+            return;
+        }
+
+        showLoading('loading4');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/channels/members`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(memberData)
+            });
+
+            const data = await response.json();
+            showResponse('membersResponse', data.message);
+        } catch (error) {
+            showResponse('membersResponse', `Error: ${error.message}`, true);
+        } finally {
+            hideLoading('loading4');
+        }
+    }
+
+    async function sendMessage() {
+        const messageData = {
+            channelType: document.getElementById('msgChannelType').value,
+            channelId: document.getElementById('msgChannelId').value,
+            userId: document.getElementById('msgUserId').value,
+            message: document.getElementById('msgText').value
+        };
+
+        if (!messageData.channelType || !messageData.channelId || !messageData.userId || !messageData.message) {
+            showResponse('messageResponse', 'Todos los campos son obligatorios', true);
+            return;
+        }
+
+        showLoading('loading5');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageData)
+            });
+
+            const data = await response.json();
+            showResponse('messageResponse', data.message);
+            document.getElementById('msgText').value = '';
+        } catch (error) {
+            showResponse('messageResponse', `Error: ${error.message}`, true);
+        } finally {
+            hideLoading('loading5');
+        }
+    }
+
+    async function getMessages() {
+        const channelType = document.getElementById('viewChannelType').value;
+        const channelId = document.getElementById('viewChannelId').value;
+        const limit = document.getElementById('messageLimit').value;
+
+        if (!channelType || !channelId) {
+            showResponse('messagesResponse', 'Tipo de Canal y Channel ID son obligatorios', true);
+            return;
+        }
+
+        showLoading('loading6');
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/channels/${channelType}/${channelId}/messages?limit=${limit}`
+            );
+
+            const data = await response.json();
+            showResponse('messagesResponse', `✅ Mensajes obtenidos: ${data.total}`);
+
+            // Mostrar mensajes
+            const messagesList = document.getElementById('messagesList');
+            if (data.messages && data.messages.length > 0) {
+                messagesList.innerHTML = '<h3>📨 Mensajes:</h3>' +
+                    data.messages.map(msg => `
+                        <div class="message-item">
+                            <strong>👤 ${msg.user?.name || msg.user?.id || 'Usuario Desconocido'}</strong>
+                            <div class="message-text">${msg.text || '(sin texto)'}</div>
+                            <small>🕒 ${new Date(msg.created_at).toLocaleString('es-ES')}</small>
+                        </div>
+                    `).join('');
+            } else {
+                messagesList.innerHTML = '<div class="empty-messages">📭 No hay mensajes en este canal</div>';
+            }
+        } catch (error) {
+            showResponse('messagesResponse', `❌ Error: ${error.message}`, true);
+            document.getElementById('messagesList').innerHTML = '';
+        } finally {
+            hideLoading('loading6');
+        }
+    }
+</script>
+</body>
+</html>
+
