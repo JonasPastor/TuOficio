@@ -1,0 +1,323 @@
+<div class="perfil-container">
+  <div class="perfil-header">
+    <div class="header-top">
+      <button class="back-btn" (click)="volver()" type="button">
+        <lucide-angular [img]="ArrowLeft" [size]="20"></lucide-angular>
+        <span>Volver al Inicio</span>
+      </button>
+    </div>
+    <div class="text-center">
+      <h1>Mi Perfil</h1>
+      <div class="title-underline mx-auto"></div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- Alert Messages -->
+  <div *ngIf="error" class="alert alert-error">
+    <i class="icon-alert-circle"></i>
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success">
+    <i class="icon-check-circle"></i>
+    <span>{{ success }}</span>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!isLoading" class="perfil-content">
+    <div class="perfil-layout">
+      <!-- Columna Izquierda - Foto de Usuario -->
+      <div class="perfil-avatar-section">
+        <div class="avatar-container">
+          <div class="avatar-image" 
+               [class.uploading]="isUploadingImage" 
+               [class.editable]="isEditing"
+               (click)="isEditing && !isUploadingImage && cambiarFoto()">
+            <img 
+              [src]="imagePreview || perfilForm.get('avatar')?.value || 'assets/icons/user-placeholder.svg'" 
+              [alt]="(perfilForm.get('name')?.value || 'Usuario') + ' ' + (perfilForm.get('lastName')?.value || '')"
+              (error)="onImageError($event)">
+            <div *ngIf="isUploadingImage" class="upload-overlay">
+              <div class="spinner-small"></div>
+              <span>Subiendo...</span>
+            </div>
+            <div *ngIf="isEditing && !isUploadingImage" class="edit-overlay">
+              <i class="icon-camera"></i>
+              <span>Cambiar foto</span>
+            </div>
+          </div>
+          <div class="avatar-info">
+            <h3 class="user-name">
+              {{ (perfilForm.get('name')?.value || 'Nombre') + ' ' + (perfilForm.get('lastName')?.value || 'Apellido') }}
+            </h3>
+            <p class="user-email">{{ perfilForm.get('email')?.value || 'email@ejemplo.com' }}</p>
+          </div>
+          <div class="edit-section">
+            <button
+              class="edit-btn"
+              (click)="toggleEditar()"
+              [class.editing]="isEditing"
+              [disabled]="isLoading"
+              type="button">
+              <i [class]="isEditing ? 'icon-x' : 'icon-edit'"></i>
+              <span>{{ isEditing ? 'Cancelar' : 'Editar' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha - Formulario -->
+      <div class="perfil-form-section">
+        <form [formGroup]="perfilForm" (ngSubmit)="guardarCambios()" class="perfil-form">
+
+      <!-- Información Personal -->
+      <div class="form-section">
+        <h2 class="section-title">Información Personal</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Nombre *</label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              [class.error]="getFieldError('name')"
+              [readonly]="!isEditing"
+              placeholder="Ingrese su nombre">
+            <div *ngIf="getFieldError('name')" class="field-error">
+              {{ getFieldError('name') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Apellido *</label>
+            <input
+              id="lastName"
+              type="text"
+              formControlName="lastName"
+              [class.error]="getFieldError('lastName')"
+              [readonly]="!isEditing"
+              placeholder="Ingrese su apellido">
+            <div *ngIf="getFieldError('lastName')" class="field-error">
+              {{ getFieldError('lastName') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              readonly
+              class="readonly-field"
+              placeholder="email@ejemplo.com">
+            <small class="field-note">El email no se puede modificar</small>
+          </div>
+
+          <div class="form-group">
+            <label for="telefono">Teléfono *</label>
+            <input
+              id="telefono"
+              type="tel"
+              formControlName="telefono"
+              [class.error]="getFieldError('telefono')"
+              [readonly]="!isEditing"
+              placeholder="Ej: 3515551234">
+            <div *ngIf="getFieldError('telefono')" class="field-error">
+              {{ getFieldError('telefono') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tipoDocumento">Tipo de Documento *</label>
+            <select
+              id="tipoDocumento"
+              formControlName="tipoDocumento"
+              [class.error]="getFieldError('tipoDocumento')"
+              [disabled]="!isEditing">
+              <option value="">Seleccione tipo</option>
+              <option value="DNI">DNI</option>
+              <option value="CUIL">CUIL</option>
+              <option value="CUIT">CUIT</option>
+              <option value="LE">LE</option>
+              <option value="LC">LC</option>
+            </select>
+            <div *ngIf="getFieldError('tipoDocumento')" class="field-error">
+              {{ getFieldError('tipoDocumento') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="documento">Número de Documento *</label>
+            <input
+              id="documento"
+              type="text"
+              formControlName="documento"
+              [class.error]="getFieldError('documento')"
+              [readonly]="!isEditing"
+              placeholder="Ej: 12345678">
+            <div *ngIf="getFieldError('documento')" class="field-error">
+              {{ getFieldError('documento') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nacimiento">Fecha de Nacimiento *</label>
+            <input
+              id="nacimiento"
+              type="date"
+              formControlName="nacimiento"
+              [class.error]="getFieldError('nacimiento')"
+              [readonly]="!isEditing">
+            <div *ngIf="getFieldError('nacimiento')" class="field-error">
+              {{ getFieldError('nacimiento') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domicilio -->
+      <div class="form-section" formGroupName="domicilio">
+        <h2 class="section-title">Domicilio</h2>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="calle">Calle *</label>
+            <input
+              id="calle"
+              type="text"
+              formControlName="calle"
+              [class.error]="getDomicilioFieldError('calle')"
+              [readonly]="!isEditing"
+              placeholder="Nombre de la calle">
+            <div *ngIf="getDomicilioFieldError('calle')" class="field-error">
+              {{ getDomicilioFieldError('calle') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="numero">Número *</label>
+            <input
+              id="numero"
+              type="text"
+              formControlName="numero"
+              [class.error]="getDomicilioFieldError('numero')"
+              [readonly]="!isEditing"
+              placeholder="123">
+            <div *ngIf="getDomicilioFieldError('numero')" class="field-error">
+              {{ getDomicilioFieldError('numero') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="piso">Piso</label>
+            <input
+              id="piso"
+              type="text"
+              formControlName="piso"
+              [readonly]="!isEditing"
+              placeholder="Ej: 2">
+          </div>
+
+          <div class="form-group">
+            <label for="depto">Departamento</label>
+            <input
+              id="depto"
+              type="text"
+              formControlName="depto"
+              [readonly]="!isEditing"
+              placeholder="Ej: A">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="departamento">Departamento *</label>
+            <select
+              id="departamento"
+              formControlName="idDepartamento"
+              [class.error]="getDomicilioFieldError('idDepartamento')"
+              [disabled]="!isEditing"
+              (change)="onDepartamentoChange($any($event.target).value)"
+              class="form-input">
+              <option value="">Seleccione un departamento</option>
+              <option *ngFor="let dept of departamentos" [value]="dept.id">
+                {{ dept.departamento }}
+              </option>
+            </select>
+            <div *ngIf="getDomicilioFieldError('idDepartamento')" class="field-error">
+              {{ getDomicilioFieldError('idDepartamento') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ciudad">Ciudad *</label>
+            <select
+              id="ciudad"
+              formControlName="idCiudad"
+              [class.error]="getDomicilioFieldError('idCiudad')"
+              [disabled]="!isEditing"
+              (change)="onCiudadChange($any($event.target).value)"
+              class="form-input">
+              <option value="">Seleccione una ciudad</option>
+              <option *ngFor="let city of ciudades" [value]="city.id">
+                {{ city.ciudad }}
+              </option>
+            </select>
+            <div *ngIf="getDomicilioFieldError('idCiudad')" class="field-error">
+              {{ getDomicilioFieldError('idCiudad') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="barrio">Barrio *</label>
+            <select
+              id="barrio"
+              formControlName="idBarrio"
+              [class.error]="getDomicilioFieldError('idBarrio')"
+              [disabled]="!isEditing"
+              class="form-input">
+              <option value="">Seleccione un barrio</option>
+              <option *ngFor="let barrio of barrios" [value]="barrio.id">
+                {{ barrio.barrio }}
+              </option>
+            </select>
+            <div *ngIf="getDomicilioFieldError('idBarrio')" class="field-error">
+              {{ getDomicilioFieldError('idBarrio') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div *ngIf="isEditing" class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="toggleEditar()" [disabled]="isLoading">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading || !perfilForm.valid">
+          <span *ngIf="isLoading">Guardando...</span>
+          <span *ngIf="!isLoading">Guardar Cambios</span>
+        </button>
+      </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

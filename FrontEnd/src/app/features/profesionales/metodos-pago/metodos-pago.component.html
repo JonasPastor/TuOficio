@@ -1,0 +1,89 @@
+<div class="metodos-pago-container">
+  <header class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+      <span>Volver al Dashboard</span>
+    </button>
+    <div class="header-content">
+      <h1>Métodos de Pago</h1>
+      <button class="add-btn" (click)="toggleAddForm()">
+        <lucide-angular [img]="Plus" size="20"></lucide-angular>
+        <span>Agregar Método</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Formulario para agregar método -->
+  <div class="add-form-container" *ngIf="showAddForm()">
+    <div class="form-card">
+      <h3>Agregar Método de Pago</h3>
+
+      <div class="form-group">
+        <label>Tipo de Método</label>
+        <select [(ngModel)]="nuevoMetodo.tipo" class="form-select">
+          <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+          <option value="banco">Transferencia Bancaria</option>
+          <option value="efectivo">Efectivo</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre</label>
+        <input
+          type="text"
+          [(ngModel)]="nuevoMetodo.nombre"
+          placeholder="Ej: Visa terminada en 4242"
+          class="form-input"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Detalles</label>
+        <input
+          type="text"
+          [(ngModel)]="nuevoMetodo.detalles"
+          placeholder="Ej: Vence 12/2026"
+          class="form-input"
+        >
+      </div>
+
+      <div class="form-actions">
+        <button class="cancel-btn" (click)="toggleAddForm()">Cancelar</button>
+        <button class="submit-btn" (click)="agregarMetodo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de métodos de pago -->
+  <div class="metodos-content">
+    <div class="metodos-list">
+      <div *ngFor="let metodo of metodosPago" class="metodo-card">
+        <div class="metodo-icon">
+          <lucide-angular [img]="CreditCard" size="24"></lucide-angular>
+        </div>
+
+        <div class="metodo-info">
+          <div class="tipo-badge">{{ getTipoLabel(metodo.tipo) }}</div>
+          <h3>{{ metodo.nombre }}</h3>
+          <p class="detalles">{{ metodo.detalles }}</p>
+        </div>
+
+        <div class="metodo-actions">
+          <button
+            class="predeterminado-btn"
+            [class.active]="metodo.predeterminado"
+            (click)="setPredeterminado(metodo.id)"
+          >
+            <lucide-angular [img]="CheckCircle" size="18"></lucide-angular>
+            <span>{{ metodo.predeterminado ? 'Predeterminado' : 'Establecer como predeterminado' }}</span>
+          </button>
+
+          <button class="delete-btn" (click)="eliminarMetodo(metodo.id)">
+            <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

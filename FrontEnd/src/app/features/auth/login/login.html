@@ -1,0 +1,98 @@
+<div class="login-container">
+  <!-- Sección izquierda - Branding -->
+  <div class="left-section">
+    <div class="logo-container">
+      <div class="branding">
+        <div class="logo">
+          <img src="assets/logos/logo-blanco.png" alt="Tu Oficio Logo" />
+        </div>
+        <div class="titles">
+          <h1 class="main-title">TU OFICIO</h1>
+          <p class="subtitle">Contactar un profesional nunca fue tan fácil</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+        <!-- Sección derecha - Formulario -->
+        <div class="right-section">
+            <div class="login-form-container">
+                <div class="form-header">
+                    <div class="logo-small">
+                        <div class="small-logo">
+                            <img src="assets/logos/logo-negro.png" alt="Tu Oficio Logo" />
+                        </div>
+                    </div>
+                    <h2 class="form-title">Inicia sesión para continuar</h2>
+                </div>
+
+                <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                    <!-- General Error Message for Login Failures -->
+                    <div *ngIf="loginError()" class="error-message general-error">
+                        {{ loginError() }}
+                    </div>
+
+                    <div class="input-group">
+                        <input
+                            type="email"
+                            placeholder="Correo electrónico*"
+                            class="form-input"
+                            formControlName="email"
+                            [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                        />
+                        <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                            <span *ngIf="loginForm.get('email')?.errors?.['required']">El correo es requerido</span>
+                            <span *ngIf="loginForm.get('email')?.errors?.['email']">Ingresa un correo válido</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="password-input-container">
+                            <input
+                                [type]="showPassword() ? 'text' : 'password'"
+                                placeholder="Contraseña*"
+                                class="form-input password-input"
+                                formControlName="password"
+                                [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                            />
+                            <button type="button" class="password-toggle" (click)="togglePasswordVisibility()">
+                                <lucide-angular [img]="showPassword() ? EyeOff : Eye" size="20"></lucide-angular>
+                            </button>
+                        </div>
+                        <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                            <span *ngIf="loginForm.get('password')?.errors?.['required']">La contraseña es requerida</span>
+                            <span *ngIf="loginForm.get('password')?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres</span>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" formControlName="rememberMe">
+                            <span class="checkmark"></span>
+                            Recordarme
+                        </label>
+                        <a routerLink="/auth/forgot-password" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button type="submit" class="submit-btn" [disabled]="!loginForm.valid || isLoading()">
+                        <span *ngIf="!isLoading()">Iniciar sesión</span>
+                        <div *ngIf="isLoading()" class="loading-content">
+                            <div class="spinner"></div>
+                            <span>Iniciando sesión...</span>
+                        </div>
+                    </button>
+                </form>
+
+                <div class="signup-link">
+                    <span>¿No tienes una cuenta? </span>
+                    <a routerLink="/auth/registro" class="signup-text">Regístrate</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Role Selection Modal -->
+<app-role-selection-modal
+  *ngIf="showRoleModal()"
+  (roleSelected)="onRoleSelected($event)">
+</app-role-selection-modal>

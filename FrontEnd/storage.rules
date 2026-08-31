@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Storage rules for avatar uploads
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Permitir lectura pública a todos los archivos
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+    
+    // Permitir escritura solo en la carpeta avatars con validaciones
+    match /avatars/{fileName} {
+      allow write: if request.resource.size < 5 * 1024 * 1024  // Máximo 5MB
+                   && request.resource.contentType.matches('image/.*');  // Solo imágenes
+    }
+    
+    // Permitir escritura en la carpeta galeria con validaciones
+    match /galeria/{profesionalFolder}/{fileName} {
+      allow write: if request.resource.size < 5 * 1024 * 1024  // Máximo 5MB
+                   && request.resource.contentType.matches('image/.*');  // Solo imágenes
+    }
+  }
+}

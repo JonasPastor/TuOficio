@@ -1,0 +1,631 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1>Panel de Administración</h1>
+        <p class="subtitle">Gestión de usuarios, profesionales y oficios</p>
+      </div>
+      <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+        <lucide-angular [img]="LogOut" [size]="20"></lucide-angular>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Estadísticas Cards -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon users">
+        <lucide-angular [img]="Users" [size]="32"></lucide-angular>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ totalUsuarios() }}</h3>
+        <p class="stat-label">Usuarios Registrados</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon professionals">
+        <lucide-angular [img]="Briefcase" [size]="32"></lucide-angular>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ totalProfesionales() }}</h3>
+        <p class="stat-label">Profesionales Activos</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon oficios">
+        <lucide-angular [img]="Package" [size]="32"></lucide-angular>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ totalOficios() }}</h3>
+        <p class="stat-label">Oficios Totales</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <lucide-angular [img]="TrendingUp" [size]="32"></lucide-angular>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ totalOficiosActivos() }}</h3>
+        <p class="stat-label">Oficios Activos</p>
+      </div>
+    </div>
+
+    <div class="stat-card" [class.warning]="totalReportes() > 0">
+      <div class="stat-icon reports">
+        <lucide-angular [img]="Flag" [size]="32"></lucide-angular>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ totalReportes() }}</h3>
+        <p class="stat-label">Reportes Pendientes</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Usuarios Section -->
+    <section class="content-card">
+      <div class="card-header">
+        <h2>Usuarios Registrados</h2>
+      </div>
+
+      <!-- Barra de búsqueda -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar cliente por nombre..."
+            [ngModel]="busquedaCliente()"
+            (ngModelChange)="busquedaCliente.set($event)"
+            (keyup.enter)="buscarCliente()">
+          <button class="btn-search" (click)="buscarCliente()" title="Buscar">
+            <lucide-angular [img]="Search" [size]="18"></lucide-angular>
+          </button>
+          <button
+            *ngIf="mostrandoResultadosClientes()"
+            class="btn-clear"
+            (click)="limpiarBusquedaClientes()"
+            title="Limpiar búsqueda">
+            <lucide-angular [img]="X" [size]="18"></lucide-angular>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Strikes</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Mostrar resultados de búsqueda si existen -->
+            <ng-container *ngIf="mostrandoResultadosClientes(); else listaUsuariosNormal">
+              <tr *ngFor="let cliente of clientesEncontrados()">
+                <td>{{ cliente.name }} {{ cliente.lastName }}</td>
+                <td>{{ cliente.email }}</td>
+                <td>
+                  <span class="badge strike-badge" [class.warning]="cliente.strikes > 0">
+                    {{ cliente.strikes }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [class.active]="cliente.estado" [class.inactive]="!cliente.estado">
+                    {{ cliente.estado ? 'ACTIVO' : 'INACTIVO' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-icon warning" (click)="abrirModalStrike(cliente)" title="Agregar Strike">
+                    <lucide-angular [img]="AlertTriangle" [size]="18"></lucide-angular>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="clientesEncontrados().length === 0">
+                <td colspan="5" class="no-data-cell">No se encontraron clientes</td>
+              </tr>
+            </ng-container>
+
+            <!-- Lista normal de usuarios -->
+            <ng-template #listaUsuariosNormal>
+              <tr *ngFor="let usuario of usuarios()">
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.email }}</td>
+                <td>
+                  <span class="badge strike-badge" [class.warning]="usuario.strikes > 0">
+                    {{ usuario.strikes }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [class.active]="usuario.estado" [class.inactive]="!usuario.estado">
+                    {{ usuario.estado ? 'ACTIVO' : 'INACTIVO' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-icon warning" (click)="abrirModalStrike(usuario)" title="Agregar Strike">
+                    <lucide-angular [img]="AlertTriangle" [size]="18"></lucide-angular>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="usuarios().length === 0">
+                <td colspan="5" class="no-data-cell">No hay usuarios registrados</td>
+              </tr>
+            </ng-template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Controles de paginaci\u00f3n -->
+      <div class="pagination-controls" *ngIf="!mostrandoResultadosClientes()">
+        <button 
+          class="btn-pagination" 
+          (click)="anterioresPaginaUsuarios()"
+          [disabled]="paginaUsuariosActual() === 0">
+          Anteriores
+        </button>
+        <span class="pagination-info">{{ paginaUsuariosActual() + 1 }}</span>
+        <button 
+          class="btn-pagination" 
+          (click)="siguientesPaginaUsuarios()"
+          [disabled]="!hayMasUsuarios()">
+          Siguientes
+        </button>
+      </div>
+    </section>
+
+    <!-- Profesionales Section -->
+    <section class="content-card">
+      <div class="card-header">
+        <h2>Profesionales Registrados</h2>
+      </div>
+
+      <!-- Barra de búsqueda -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar profesional por nombre..."
+            [ngModel]="busquedaProfesional()"
+            (ngModelChange)="busquedaProfesional.set($event)"
+            (keyup.enter)="buscarProfesional()">
+          <button class="btn-search" (click)="buscarProfesional()" title="Buscar">
+            <lucide-angular [img]="Search" [size]="18"></lucide-angular>
+          </button>
+          <button
+            *ngIf="mostrandoResultadosProfesionales()"
+            class="btn-clear"
+            (click)="limpiarBusquedaProfesionales()"
+            title="Limpiar búsqueda">
+            <lucide-angular [img]="X" [size]="18"></lucide-angular>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Oficio</th>
+              <th>Calificación</th>
+              <th>Servicios Completados</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Mostrar resultados de búsqueda si existen -->
+            <ng-container *ngIf="mostrandoResultadosProfesionales(); else listaProfesionalesNormal">
+              <tr *ngFor="let profesional of profesionalesEncontrados()">
+                <td>{{ profesional.nombre }} {{ profesional.apellido }}</td>
+                <td>{{ profesional.oficio }}</td>
+                <td>⭐ {{ profesional.puntuacionPromedio || 'N/A' }}</td>
+                <td>{{ profesional.serviciosCompletados || 0 }}</td>
+              </tr>
+              <tr *ngIf="profesionalesEncontrados().length === 0">
+                <td colspan="4" class="no-data-cell">No se encontraron profesionales</td>
+              </tr>
+            </ng-container>
+
+            <!-- Lista normal de profesionales -->
+            <ng-template #listaProfesionalesNormal>
+              <tr *ngFor="let profesional of profesionales()">
+                <td>{{ profesional.nombre }}</td>
+                <td>{{ profesional.oficio }}</td>
+                <td>⭐ {{ profesional.calificacion }}</td>
+                <td>{{ profesional.serviciosCompletados }}</td>
+              </tr>
+              <tr *ngIf="profesionales().length === 0">
+                <td colspan="4" class="no-data-cell">No hay profesionales registrados</td>
+              </tr>
+            </ng-template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Controles de paginación -->
+      <div class="pagination-controls" *ngIf="!mostrandoResultadosProfesionales()">
+        <button 
+          class="btn-pagination" 
+          (click)="anterioresPaginaProfesionales()"
+          [disabled]="paginaProfesionalesActual() === 0">
+          Anteriores
+        </button>
+        <span class="pagination-info">{{ paginaProfesionalesActual() + 1 }}</span>
+        <button 
+          class="btn-pagination" 
+          (click)="siguientesPaginaProfesionales()"
+          [disabled]="!hayMasProfesionales()">
+          Siguientes
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Oficios Grid -->
+  <div class="oficios-grid">
+    <!-- Oficios Más Demandados -->
+    <section class="content-card">
+      <div class="card-header">
+        <h2>Oficios Más Solicitados</h2>
+      </div>
+
+      <!-- Filtros de Fecha -->
+      <div class="filtros-fecha">
+        <div class="filtro-group">
+          <label for="fechaInicio">Fecha Inicio:</label>
+          <input
+            type="date"
+            id="fechaInicio"
+            class="date-input"
+            [ngModel]="fechaInicio()"
+            (ngModelChange)="fechaInicio.set($event)">
+        </div>
+        <div class="filtro-group">
+          <label for="fechaFin">Fecha Fin:</label>
+          <input
+            type="date"
+            id="fechaFin"
+            class="date-input"
+            [ngModel]="fechaFin()"
+            (ngModelChange)="fechaFin.set($event)">
+        </div>
+        <button class="btn-filtro" (click)="aplicarFiltroFechas()">Aplicar</button>
+        <button class="btn-limpiar" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+
+      <!-- Gráfico de Torta -->
+      <div class="chart-container" *ngIf="oficiosMasDemandados().length > 0">
+        <canvas baseChart
+          [type]="pieChartType"
+          [data]="pieChartData"
+          [options]="pieChartOptions">
+        </canvas>
+      </div>
+
+      <!-- Mensaje cuando no hay datos -->
+      <div class="no-data" *ngIf="oficiosMasDemandados().length === 0">
+        <p>No hay datos disponibles para el período seleccionado</p>
+      </div>
+
+      <!-- Lista de Oficios con Cantidades -->
+      <div class="oficios-stats-list" *ngIf="oficiosMasDemandados().length > 0">
+        <h3>Detalle de Solicitudes por Oficio</h3>
+        <div class="stats-item" *ngFor="let item of oficiosMasDemandados()">
+          <span class="oficio-nombre">{{ item.oficio }}</span>
+          <span class="oficio-cantidad">{{ item.cantidadDeSolicitudes }} solicitudes</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gestión de Oficios -->
+    <section class="content-card">
+      <div class="card-header">
+        <h2>Gestión de Oficios</h2>
+        <button class="btn-primary" (click)="abrirModalNuevoOficio()">
+          <lucide-angular [img]="Plus" [size]="20"></lucide-angular>
+          Agregar Oficio
+        </button>
+      </div>
+      <div class="oficios-list">
+        <div *ngFor="let oficio of oficios()" class="oficio-item">
+          <div class="oficio-info">
+            <h4>{{ oficio.oficio }}</h4>
+            <p *ngIf="oficio.descripcion">{{ oficio.descripcion }}</p>
+            <div class="oficio-status">
+              <span class="status-badge" [class.activo]="oficio.activo">
+                {{ oficio.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+          </div>
+          <div class="oficio-actions">
+            <button
+              class="btn-icon"
+              [class.active]="oficio.activo"
+              (click)="toggleEstadoOficio(oficio)"
+              [title]="oficio.activo ? 'Desactivar' : 'Activar'">
+              {{ oficio.activo ? '✓' : '✗' }}
+            </button>
+            <button class="btn-icon edit" (click)="abrirModalEditarOficio(oficio)">
+              <lucide-angular [img]="Edit" [size]="18"></lucide-angular>
+            </button>
+            <button class="btn-icon delete" (click)="eliminarOficio(oficio.id)">
+              <lucide-angular [img]="Trash2" [size]="18"></lucide-angular>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Reportes Section -->
+  <section class="content-card reportes-section" *ngIf="totalReportes() > 0">
+    <div class="card-header">
+      <div class="header-with-icon">
+        <lucide-angular [img]="Flag" [size]="24" class="warning-icon"></lucide-angular>
+        <h2>Reportes de Profesionales</h2>
+      </div>
+      <span class="badge-counter">{{ totalReportes() }} pendientes</span>
+    </div>
+
+    <div class="reportes-list">
+      <div *ngFor="let reporte of reportesPendientes()" class="reporte-item">
+        <div class="reporte-header">
+          <div class="reporte-info">
+            <h4>{{ reporte.nombreProfesional }}</h4>
+            <span class="reporte-fecha">{{ reporte.fechaReporte | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <span class="reporte-badge">Pendiente</span>
+        </div>
+        <div class="reporte-body">
+          <p class="reporte-razon"><strong>Razón:</strong> {{ reporte.razon }}</p>
+          <p class="reporte-autor" *ngIf="reporte.nombreReportante">
+            <strong>Reportado por:</strong> {{ reporte.nombreReportante }}
+          </p>
+        </div>
+        <div class="reporte-actions">
+          <button class="btn-sm danger" (click)="eliminarReporte(reporte.id)" title="Eliminar reporte">
+            <lucide-angular [img]="Trash2" [size]="16"></lucide-angular>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Mensaje de eliminado -->
+<div class="toast-message" *ngIf="reporteEliminado()">
+  Reporte eliminado
+</div>
+
+<!-- Modal Agregar Oficio -->
+<div class="modal-overlay" *ngIf="showAddOficioModal()" (click)="cerrarModalNuevoOficio()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Agregar Nuevo Oficio</h3>
+      <button class="btn-close" (click)="cerrarModalNuevoOficio()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="nombreOficio">Nombre del Oficio</label>
+        <input
+          type="text"
+          id="nombreOficio"
+          class="form-input"
+          [(ngModel)]="nuevoOficio.nombre"
+          placeholder="Ej: Plomería">
+      </div>
+      <div class="form-group">
+        <label for="descripcionOficio">Descripción</label>
+        <textarea
+          id="descripcionOficio"
+          class="form-input"
+          [(ngModel)]="nuevoOficio.descripcion"
+          placeholder="Descripción del oficio"
+          rows="4"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrarModalNuevoOficio()">Cancelar</button>
+      <button class="btn-primary" (click)="agregarOficio()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Oficio -->
+<div class="modal-overlay" *ngIf="showEditOficioModal()" (click)="cerrarModalEditarOficio()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Editar Oficio</h3>
+      <button class="btn-close" (click)="cerrarModalEditarOficio()">×</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedOficio()">
+      <div class="form-group">
+        <label for="editNombreOficio">Nombre del Oficio</label>
+        <input
+          type="text"
+          id="editNombreOficio"
+          class="form-input"
+          [(ngModel)]="selectedOficio()!.oficio">
+      </div>
+      <div class="form-group">
+        <label for="editDescripcionOficio">Descripción</label>
+        <textarea
+          id="editDescripcionOficio"
+          class="form-input"
+          [(ngModel)]="selectedOficio()!.descripcion"
+          rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="selectedOficio()!.activo">
+          Oficio Activo
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrarModalEditarOficio()">Cancelar</button>
+      <button class="btn-primary" (click)="actualizarOficio()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Agregar Strike -->
+<div class="modal-overlay" *ngIf="showStrikeModal()" (click)="cerrarModalStrike()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Agregar Strike a Usuario</h3>
+      <button class="btn-close" (click)="cerrarModalStrike()">×</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedUsuarioForStrike()">
+      <div class="user-info-strike">
+        <lucide-angular [img]="AlertTriangle" [size]="48" color="#f59e0b"></lucide-angular>
+        <h4>{{ getUsuarioDisplayName(selectedUsuarioForStrike()) }}</h4>
+        <p>{{ selectedUsuarioForStrike()!.email }}</p>
+        <p class="current-strikes">Strikes actuales: <strong>{{ selectedUsuarioForStrike()!.strikes }}</strong></p>
+      </div>
+      <div class="form-group">
+        <label for="motivoStrike">Motivo del Strike <span class="required">*</span></label>
+        <textarea
+          id="motivoStrike"
+          class="form-input"
+          [(ngModel)]="strikeForm.motivo"
+          placeholder="Describa el motivo del strike (ej: Comportamiento inapropiado, Incumplimiento de términos, etc.)"
+          rows="4"></textarea>
+      </div>
+      <div class="strike-warning">
+        <lucide-angular [img]="AlertTriangle" [size]="20" color="#dc2626"></lucide-angular>
+        <p>Esta acción quedará registrada en el historial del usuario.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrarModalStrike()">Cancelar</button>
+      <button class="btn-danger" (click)="agregarStrike()">Agregar Strike</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Validación de Strike -->
+<div class="modal-overlay" *ngIf="showStrikeValidationModal()" (click)="cerrarModalValidacionStrike()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warning">
+      <lucide-angular [img]="AlertTriangle" [size]="32" color="#f59e0b"></lucide-angular>
+      <h3>Atención</h3>
+      <button class="btn-close" (click)="cerrarModalValidacionStrike()">×</button>
+    </div>
+    <div class="modal-body text-center">
+      <p class="modal-message">{{ strikeValidationMessage() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary btn-block" (click)="cerrarModalValidacionStrike()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Strike -->
+<div class="modal-overlay" *ngIf="showStrikeConfirmModal()" (click)="cerrarModalConfirmacionStrike()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warning">
+      <lucide-angular [img]="AlertTriangle" [size]="32" color="#f59e0b"></lucide-angular>
+      <h3>Confirmar Strike</h3>
+      <button class="btn-close" (click)="cerrarModalConfirmacionStrike()">×</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedUsuarioForStrike()">
+      <p class="modal-message text-center">
+        ¿Está seguro que desea agregar un strike a
+        <strong>{{ getUsuarioDisplayName(selectedUsuarioForStrike()) }}</strong>?
+      </p>
+      <div class="confirm-details">
+        <p><strong>Email:</strong> {{ selectedUsuarioForStrike()!.email }}</p>
+        <p><strong>Motivo:</strong> {{ strikeForm.motivo }}</p>
+        <p><strong>Strikes actuales:</strong> {{ selectedUsuarioForStrike()!.strikes }}</p>
+        <p class="new-strikes"><strong>Nuevos strikes:</strong> {{ selectedUsuarioForStrike()!.strikes + 1 }}</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrarModalConfirmacionStrike()">Cancelar</button>
+      <button class="btn-danger" (click)="confirmarStrike()">Confirmar Strike</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Éxito de Strike -->
+<div class="modal-overlay" *ngIf="showStrikeSuccessModal()" (click)="cerrarModalExitoStrike()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-success">
+      <lucide-angular [img]="CheckCircle" [size]="32" color="#10b981"></lucide-angular>
+      <h3>Strike Agregado</h3>
+      <button class="btn-close" (click)="cerrarModalExitoStrike()">×</button>
+    </div>
+    <div class="modal-body text-center">
+      <p class="modal-message">¡Strike agregado exitosamente!</p>
+      <p class="modal-submessage">Los datos se han actualizado correctamente.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-success btn-block" (click)="cerrarModalExitoStrike()">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Error de Strike -->
+<div class="modal-overlay" *ngIf="showStrikeErrorModal()" (click)="cerrarModalErrorStrike()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-error">
+      <lucide-angular [img]="XCircle" [size]="32" color="#ef4444"></lucide-angular>
+      <h3>Error</h3>
+      <button class="btn-close" (click)="cerrarModalErrorStrike()">×</button>
+    </div>
+    <div class="modal-body text-center">
+      <p class="modal-message">{{ strikeErrorMessage() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger btn-block" (click)="cerrarModalErrorStrike()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Éxito de Oficio -->
+<div class="modal-overlay" *ngIf="showOficioSuccessModal()" (click)="cerrarModalExitoOficio()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-success">
+      <lucide-angular [img]="CheckCircle" [size]="32" color="#10b981"></lucide-angular>
+      <h3>Operación Exitosa</h3>
+      <button class="btn-close" (click)="cerrarModalExitoOficio()">×</button>
+    </div>
+    <div class="modal-body text-center">
+      <p class="modal-message">{{ oficioModalMessage() }}</p>
+      <p class="modal-submessage">Los cambios se han guardado correctamente.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-success btn-block" (click)="cerrarModalExitoOficio()">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Error de Oficio -->
+<div class="modal-overlay" *ngIf="showOficioErrorModal()" (click)="cerrarModalErrorOficio()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-error">
+      <lucide-angular [img]="XCircle" [size]="32" color="#ef4444"></lucide-angular>
+      <h3>Error</h3>
+      <button class="btn-close" (click)="cerrarModalErrorOficio()">×</button>
+    </div>
+    <div class="modal-body text-center">
+      <p class="modal-message">{{ oficioErrorMessage() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger btn-block" (click)="cerrarModalErrorOficio()">Cerrar</button>
+    </div>
+  </div>
+</div>

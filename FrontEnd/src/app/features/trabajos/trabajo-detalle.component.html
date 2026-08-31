@@ -1,0 +1,155 @@
+<div class="trabajo-detalle-container" *ngIf="trabajo()">
+  <div class="trabajo-card">
+    <h1 class="titulo">Gestión de Trabajo</h1>
+
+    <!-- Información del trabajo -->
+    <div class="info-section">
+      <h2>Información del Trabajo</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">ID Trabajo:</span>
+          <span class="valor">{{ trabajo()?.idTrabajo }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Estado:</span>
+          <span class="valor estado-badge" [class]="trabajo()?.estado">
+            {{ trabajo()?.estado }}
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">Oficio:</span>
+          <span class="valor">{{ trabajo()?.oficio || 'N/A' }}</span>
+        </div>
+        <div class="info-item" *ngIf="trabajo()?.montoFinal">
+          <span class="label">Costo:</span>
+          <span class="valor">${{ trabajo()?.montoFinal }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-message" *ngIf="error()">
+      {{ error() }}
+    </div>
+
+    <!-- Acciones según estado -->
+    <div class="acciones-section" *ngIf="!loading()">
+      <ng-container [ngSwitch]="trabajo()?.estado">
+        <!-- Estado PENDIENTE -->
+        <div *ngSwitchCase="'PENDIENTE'" class="acciones">
+          <button class="btn btn-primary" (click)="iniciarTrabajo()">
+            <lucide-angular [img]="PlayCircle" [size]="20"></lucide-angular>
+            Iniciar Trabajo
+          </button>
+          <button class="btn btn-danger" (click)="cancelarTrabajo()">
+            <lucide-angular [img]="XCircle" [size]="20"></lucide-angular>
+            Cancelar
+          </button>
+        </div>
+
+        <!-- Estado EN_CURSO -->
+        <div *ngSwitchCase="'EN_CURSO'" class="acciones">
+          <button class="btn btn-warning" (click)="pausarTrabajo()">
+            <lucide-angular [img]="PauseCircle" [size]="20"></lucide-angular>
+            Pausar Trabajo
+          </button>
+          <button class="btn btn-success" (click)="abrirModalFinalizacion()">
+            <lucide-angular [img]="CheckCircle" [size]="20"></lucide-angular>
+            Finalizar Trabajo
+          </button>
+        </div>
+
+        <!-- Estado PAUSADO -->
+        <div *ngSwitchCase="'PAUSADO'" class="acciones">
+          <button class="btn btn-primary" (click)="reanudarTrabajo()">
+            <lucide-angular [img]="PlayCircle" [size]="20"></lucide-angular>
+            Reanudar Trabajo
+          </button>
+          <button class="btn btn-success" (click)="abrirModalFinalizacion()">
+            <lucide-angular [img]="CheckCircle" [size]="20"></lucide-angular>
+            Finalizar Trabajo
+          </button>
+        </div>
+
+        <!-- Estado FINALIZADO -->
+        <div *ngSwitchCase="'FINALIZADO'" class="acciones">
+          <div class="finalizado-info">
+            <p>✅ Trabajo finalizado correctamente</p>
+            <button class="btn btn-payment" (click)="mostrarModalPago.set(true)">
+              <lucide-angular [img]="DollarSign" [size]="20"></lucide-angular>
+              Procesar Pago
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" *ngIf="loading()">
+      Cargando...
+    </div>
+  </div>
+</div>
+
+<!-- Modal Finalización -->
+<div class="modal-overlay" *ngIf="mostrarModalFinalizacion()" (click)="cerrarModalFinalizacion()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>Finalizar Trabajo</h2>
+
+    <div class="form-group">
+      <label>Descripción del trabajo realizado:</label>
+      <textarea
+        [(ngModel)]="descripcionFinalizacion"
+        placeholder="Detalle el trabajo realizado..."
+        rows="4"
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Costo final:</label>
+      <input
+        type="number"
+        [(ngModel)]="costoFinal"
+        placeholder="Ingrese el costo"
+        min="0"
+        step="0.01"
+      />
+    </div>
+
+    <div class="modal-acciones">
+      <button class="btn btn-secondary" (click)="cerrarModalFinalizacion()">
+        Cancelar
+      </button>
+      <button class="btn btn-success" (click)="finalizarTrabajo()">
+        Confirmar Finalización
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pago -->
+<div class="modal-overlay" *ngIf="mostrarModalPago()" (click)="cerrarModalPago()">
+  <div class="modal-content pago" (click)="$event.stopPropagation()">
+    <h2>Procesar Pago</h2>
+
+    <div class="pago-info">
+      <p>El trabajo ha sido finalizado correctamente.</p>
+      <p class="costo-destacado">
+        Monto a pagar: <strong>${{ trabajo()?.montoFinal }}</strong>
+      </p>
+      <p class="info-text">
+        Al confirmar, serás redirigido a Mercado Pago para completar el pago de forma segura.
+      </p>
+    </div>
+
+    <div class="modal-acciones">
+      <button class="btn btn-secondary" (click)="cerrarModalPago()">
+        Cancelar
+      </button>
+      <button class="btn btn-payment" (click)="procesarPago()" [disabled]="loading()">
+        <lucide-angular [img]="DollarSign" [size]="20"></lucide-angular>
+        {{ loading() ? 'Procesando...' : 'Pagar con Mercado Pago' }}
+      </button>
+    </div>
+  </div>
+</div>

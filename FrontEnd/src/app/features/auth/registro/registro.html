@@ -1,0 +1,525 @@
+<div class="registro-container">
+        <!-- Formulario centrado -->
+        <div class="center-section">
+            <div class="registro-form-container">
+                <!-- Indicador de pasos -->
+                <div class="steps-indicator">
+                    <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Datos básicos</span>
+                    </div>
+                    <div class="step-divider"></div>
+                    <div class="step" [class.active]="currentStep === 2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Información adicional</span>
+                    </div>
+                </div>
+
+                <!-- Paso 1: Datos básicos -->
+                <div *ngIf="currentStep === 1" class="step-content">
+                    <div class="form-header">
+                        <h2 class="form-title">Datos de Usuario</h2>
+                        <p class="form-subtitle">Completa tu información personal</p>
+                    </div>
+
+                    <form [formGroup]="datosBasicosForm" class="registro-form">
+                        <div class="input-group">
+                            <label class="form-label">Correo electrónico*</label>
+                            <input
+                                type="email"
+                                class="form-input"
+                                formControlName="mail"
+                                [class.error]="isFieldInvalid(datosBasicosForm, 'mail')"
+                            />
+                            <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'mail')">
+                                {{ getFieldError(datosBasicosForm, 'mail') }}
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="form-label">Contraseña*</label>
+                            <div class="password-input-container">
+                                <input
+                                    [type]="showPassword() ? 'text' : 'password'"
+                                    class="form-input password-input"
+                                    formControlName="password"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'password')"
+                                />
+                                <button type="button" class="password-toggle" (click)="togglePasswordVisibility()">
+                                    <lucide-angular [img]="showPassword() ? EyeOff : Eye" size="20"></lucide-angular>
+                                </button>
+                            </div>
+                            <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'password')">
+                                {{ getFieldError(datosBasicosForm, 'password') }}
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="form-label">Nombre*</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="name"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'name')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'name')">
+                                    {{ getFieldError(datosBasicosForm, 'name') }}
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="form-label">Apellido*</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="lastName"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'lastName')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'lastName')">
+                                    {{ getFieldError(datosBasicosForm, 'lastName') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="form-label">Tipo de Documento*</label>
+                                <select
+                                    class="form-select"
+                                    formControlName="idTipoDoc"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'idTipoDoc')"
+                                    [disabled]="isLoadingTiposDoc">
+                                    <option value="">Seleccione una opción</option>
+                                    <option *ngFor="let tipo of tiposDocumento" [value]="tipo.id">
+                                        {{ tipo.tipo }}
+                                    </option>
+                                </select>
+                                <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'idTipoDoc')">
+                                    {{ getFieldError(datosBasicosForm, 'idTipoDoc') }}
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="form-label">Número de Documento*</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="documento"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'documento')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'documento')">
+                                    {{ getFieldError(datosBasicosForm, 'documento') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="form-label">Teléfono*</label>
+                                <input
+                                    type="tel"
+                                    class="form-input"
+                                    formControlName="telefono"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'telefono')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'telefono')">
+                                    {{ getFieldError(datosBasicosForm, 'telefono') }}
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="form-label">Fecha de Nacimiento*</label>
+                                <input
+                                    type="date"
+                                    class="form-input"
+                                    formControlName="nacimiento"
+                                    [class.error]="isFieldInvalid(datosBasicosForm, 'nacimiento')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosBasicosForm, 'nacimiento')">
+                                    {{ getFieldError(datosBasicosForm, 'nacimiento') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="submit-btn" (click)="nextStep()" [disabled]="!datosBasicosForm.valid">
+                            Continuar
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Paso 2: Información adicional -->
+                <div *ngIf="currentStep === 2" class="step-content">
+                    <div class="form-header">
+                        <h2 class="form-title">Información adicional</h2>
+                        <p class="form-subtitle">Completa tu domicilio</p>
+                    </div>
+
+                    <form [formGroup]="datosAdicionalForm" class="registro-form">
+                        <div class="input-group">
+                            <label class="form-label">Departamento*</label>
+                            <select
+                                class="form-select"
+                                formControlName="idDepartamento"
+                                [class.error]="isFieldInvalid(datosAdicionalForm, 'idDepartamento')"
+                                [disabled]="isLoadingDepartamentos"
+                                (change)="onDepartamentoChange($any($event.target).value)">
+                                <option value="">Seleccione una opción</option>
+                                <option *ngFor="let departamento of departamentos" [value]="departamento.id">
+                                    {{ departamento.departamento }}
+                                </option>
+                            </select>
+                            <div class="error-message" *ngIf="isFieldInvalid(datosAdicionalForm, 'idDepartamento')">
+                                {{ getFieldError(datosAdicionalForm, 'idDepartamento') }}
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="form-label">Ciudad*</label>
+                            <select
+                                class="form-select"
+                                formControlName="idCiudad"
+                                [class.error]="isFieldInvalid(datosAdicionalForm, 'idCiudad')"
+                                [disabled]="isLoadingCiudades || ciudades.length === 0"
+                                (change)="onCiudadChange($any($event.target).value)">
+                                <option value="">Seleccione una opción</option>
+                                <option *ngFor="let ciudad of ciudades" [value]="ciudad.id">
+                                    {{ ciudad.ciudad }}
+                                </option>
+                            </select>
+                            <div class="error-message" *ngIf="isFieldInvalid(datosAdicionalForm, 'idCiudad')">
+                                {{ getFieldError(datosAdicionalForm, 'idCiudad') }}
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="form-label">Barrio*</label>
+                            <select
+                                class="form-select"
+                                formControlName="idBarrio"
+                                [class.error]="isFieldInvalid(datosAdicionalForm, 'idBarrio')"
+                                [disabled]="isLoadingBarrios || barrios.length === 0">
+                                <option value="">Seleccione una opción</option>
+                                <option *ngFor="let barrio of barrios" [value]="barrio.id">
+                                    {{ barrio.barrio }}
+                                </option>
+                            </select>
+                            <div class="error-message" *ngIf="isFieldInvalid(datosAdicionalForm, 'idBarrio')">
+                                {{ getFieldError(datosAdicionalForm, 'idBarrio') }}
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="form-label">Calle*</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="calle"
+                                    [class.error]="isFieldInvalid(datosAdicionalForm, 'calle')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosAdicionalForm, 'calle')">
+                                    {{ getFieldError(datosAdicionalForm, 'calle') }}
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="form-label">Número*</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="numero"
+                                    [class.error]="isFieldInvalid(datosAdicionalForm, 'numero')"
+                                />
+                                <div class="error-message" *ngIf="isFieldInvalid(datosAdicionalForm, 'numero')">
+                                    {{ getFieldError(datosAdicionalForm, 'numero') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="form-label">Piso (opcional)</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="piso"
+                                />
+                            </div>
+
+                            <div class="input-group">
+                                <label class="form-label">Departamento (opcional)</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    formControlName="depto"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="form-label">Observaciones (opcional)</label>
+                            <textarea
+                                class="form-input"
+                                formControlName="observaciones"
+                                rows="3"
+                            ></textarea>
+                        </div>
+
+                        <!-- Términos y Condiciones -->
+                        <div class="terminos-container">
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox-input"
+                                    formControlName="aceptaTerminos"
+                                />
+                                <span class="checkbox-text">
+                                    Acepto los
+                                    <a class="terminos-link" (click)="openTermsModal()">Términos y Condiciones</a>
+                                </span>
+                            </label>
+                            <div class="error-message" *ngIf="isFieldInvalid(datosAdicionalForm, 'aceptaTerminos')">
+                                Debe aceptar los términos y condiciones
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="back-btn" (click)="prevStep()">
+                                Atrás
+                            </button>
+                            <button
+                                type="submit"
+                                class="submit-btn"
+                                (click)="onSubmit()"
+                                [disabled]="!datosAdicionalForm.valid || isSubmitting">
+                                {{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Link para volver al login -->
+                <div class="login-link">
+                    <span>¿Ya tienes una cuenta? </span>
+                    <a routerLink="/auth/login" class="login-text">Inicia sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Términos y Condiciones -->
+    <div class="modal-overlay" *ngIf="showTermsModal()" (click)="closeTermsModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Términos y Condiciones - Tu Oficio</h2>
+                <button class="modal-close" (click)="closeTermsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>1. ACEPTACIÓN DE LOS TÉRMINOS</h3>
+                <p>Al acceder y utilizar la plataforma "Tu Oficio", usted acepta estar sujeto a estos Términos y Condiciones, todas las leyes y regulaciones aplicables, y acepta que es responsable del cumplimiento de las leyes locales aplicables. Si no está de acuerdo con alguno de estos términos, tiene prohibido usar o acceder a este sitio.</p>
+
+                <h3>2. DESCRIPCIÓN DEL SERVICIO</h3>
+                <p>"Tu Oficio" es una plataforma digital que conecta a usuarios que necesitan servicios profesionales con profesionales calificados en diversas áreas como plomería, electricidad, carpintería, jardinería, y otros oficios. La plataforma facilita la comunicación, programación de servicios y procesamiento de pagos entre usuarios y profesionales.</p>
+
+                <h3>3. REGISTRO Y CUENTA DE USUARIO</h3>
+                <h4>3.1 Registro</h4>
+                <p>Para utilizar ciertos servicios de la plataforma, debe registrarse y crear una cuenta. Al registrarse, usted se compromete a:</p>
+                <ul>
+                    <li>Proporcionar información precisa, actual y completa</li>
+                    <li>Mantener la seguridad de su contraseña y cuenta</li>
+                    <li>Actualizar rápidamente su información de registro para mantenerla precisa y actualizada</li>
+                    <li>Aceptar toda la responsabilidad por todas las actividades que ocurran bajo su cuenta</li>
+                </ul>
+
+                <h4>3.2 Tipos de Cuenta</h4>
+                <p><strong>Cuenta de Usuario:</strong> Permite solicitar servicios profesionales, comunicarse con profesionales, programar citas y realizar pagos.</p>
+                <p><strong>Cuenta de Profesional:</strong> Además de las funcionalidades de usuario, permite ofrecer servicios, recibir solicitudes, gestionar trabajos y recibir pagos.</p>
+
+                <h3>4. RESPONSABILIDADES DEL USUARIO</h3>
+                <h4>4.1 Como Cliente</h4>
+                <ul>
+                    <li>Proporcionar información precisa sobre el servicio requerido</li>
+                    <li>Estar disponible en la fecha y hora acordadas</li>
+                    <li>Proporcionar acceso seguro al lugar donde se realizará el servicio</li>
+                    <li>Realizar el pago acordado dentro de los plazos establecidos</li>
+                    <li>Tratar a los profesionales con respeto y profesionalismo</li>
+                </ul>
+
+                <h4>4.2 Como Profesional</h4>
+                <ul>
+                    <li>Verificar que posee las habilidades, certificaciones y licencias necesarias</li>
+                    <li>Proporcionar servicios de calidad según lo acordado</li>
+                    <li>Cumplir con los horarios y plazos acordados</li>
+                    <li>Mantener comunicación clara y profesional con los clientes</li>
+                    <li>Respetar las propiedades y privacidad de los clientes</li>
+                    <li>Cumplir con todas las regulaciones locales aplicables a su oficio</li>
+                </ul>
+
+                <h3>5. SERVICIOS Y PAGOS</h3>
+                <h4>5.1 Solicitud de Servicios</h4>
+                <p>Los usuarios pueden solicitar servicios a través de la plataforma. Las solicitudes deben incluir:</p>
+                <ul>
+                    <li>Descripción detallada del trabajo requerido</li>
+                    <li>Ubicación donde se realizará el servicio</li>
+                    <li>Fecha y hora preferidas</li>
+                    <li>Cualquier requisito especial o material necesario</li>
+                </ul>
+
+                <h4>5.2 Aceptación de Trabajos</h4>
+                <p>Los profesionales pueden aceptar o rechazar solicitudes de servicio. Una vez aceptada una solicitud, se crea un trabajo que debe ser gestionado hasta su finalización.</p>
+
+                <h4>5.3 Procesamiento de Pagos</h4>
+                <ul>
+                    <li>Los pagos se procesan a través de Mercado Pago, una plataforma de pagos segura</li>
+                    <li>Se emite una factura automática al finalizar el trabajo</li>
+                    <li>Los clientes deben pagar el monto acordado antes de que el profesional reciba su compensación</li>
+                    <li>"Tu Oficio" puede retener una comisión de servicio sobre cada transacción</li>
+                </ul>
+
+                <h4>5.4 Gestión de Trabajos</h4>
+                <p>Los trabajos pasan por diferentes estados:</p>
+                <ul>
+                    <li><strong>PENDIENTE:</strong> El trabajo ha sido creado pero no iniciado</li>
+                    <li><strong>EN_CURSO:</strong> El trabajo está siendo realizado activamente</li>
+                    <li><strong>PAUSADO:</strong> El trabajo ha sido temporalmente suspendido</li>
+                    <li><strong>FINALIZADO:</strong> El trabajo ha sido completado</li>
+                    <li><strong>CANCELADO:</strong> El trabajo ha sido cancelado por alguna de las partes</li>
+                </ul>
+
+                <h3>6. CANCELACIONES Y REEMBOLSOS</h3>
+                <h4>6.1 Cancelación por el Cliente</h4>
+                <ul>
+                    <li>Los clientes pueden cancelar un trabajo antes de que sea iniciado sin penalización</li>
+                    <li>Las cancelaciones después de iniciado el trabajo pueden estar sujetas a cargos</li>
+                </ul>
+
+                <h4>6.2 Cancelación por el Profesional</h4>
+                <ul>
+                    <li>Los profesionales pueden cancelar trabajos pendientes proporcionando un motivo válido</li>
+                    <li>Cancelaciones frecuentes pueden resultar en suspensión de la cuenta</li>
+                </ul>
+
+                <h4>6.3 Política de Reembolsos</h4>
+                <p>Los reembolsos se evaluarán caso por caso y pueden otorgarse en las siguientes situaciones:</p>
+                <ul>
+                    <li>El servicio no fue proporcionado como se acordó</li>
+                    <li>El profesional canceló después de iniciar el trabajo</li>
+                    <li>Problemas técnicos con la plataforma impidieron la prestación del servicio</li>
+                </ul>
+
+                <h3>7. PRIVACIDAD Y PROTECCIÓN DE DATOS</h3>
+                <p>Su privacidad es importante para nosotros. Recopilamos y utilizamos información personal de acuerdo con nuestra Política de Privacidad, que incluye:</p>
+                <ul>
+                    <li>Información de registro (nombre, correo electrónico, teléfono, dirección)</li>
+                    <li>Información de pago procesada de forma segura</li>
+                    <li>Historial de servicios solicitados y proporcionados</li>
+                    <li>Comunicaciones entre usuarios y profesionales</li>
+                </ul>
+
+                <h3>8. PROHIBICIONES Y CONDUCTA</h3>
+                <p>Los usuarios no pueden:</p>
+                <ul>
+                    <li>Usar la plataforma para actividades ilegales o no autorizadas</li>
+                    <li>Intentar eludir los sistemas de pago de la plataforma</li>
+                    <li>Publicar contenido ofensivo, discriminatorio o inapropiado</li>
+                    <li>Hacerse pasar por otra persona o entidad</li>
+                    <li>Intentar acceder a cuentas de otros usuarios</li>
+                    <li>Usar bots o sistemas automatizados sin autorización</li>
+                    <li>Recopilar información de otros usuarios sin consentimiento</li>
+                </ul>
+
+                <h3>9. PROPIEDAD INTELECTUAL</h3>
+                <p>Todo el contenido de la plataforma, incluyendo texto, gráficos, logos, iconos, imágenes, clips de audio, descargas digitales y software, es propiedad de "Tu Oficio" o de sus proveedores de contenido y está protegido por las leyes de propiedad intelectual.</p>
+
+                <h3>10. LIMITACIÓN DE RESPONSABILIDAD</h3>
+                <p>"Tu Oficio" actúa como intermediario entre clientes y profesionales. Por lo tanto:</p>
+                <ul>
+                    <li>No somos responsables por la calidad, seguridad o legalidad de los servicios prestados</li>
+                    <li>No verificamos antecedentes exhaustivos de todos los profesionales</li>
+                    <li>No somos responsables por daños, lesiones o pérdidas que puedan ocurrir durante la prestación de servicios</li>
+                    <li>No garantizamos la disponibilidad continua e ininterrumpida de la plataforma</li>
+                </ul>
+
+                <h3>11. COMUNICACIÓN EN LA PLATAFORMA</h3>
+                <p>La plataforma incluye un sistema de chat integrado con Stream Chat para facilitar la comunicación entre usuarios y profesionales:</p>
+                <ul>
+                    <li>Las conversaciones deben mantenerse profesionales y relacionadas con los servicios</li>
+                    <li>No está permitido el intercambio de información de contacto para eludir la plataforma</li>
+                    <li>Las conversaciones pueden ser monitoreadas para garantizar el cumplimiento de estos términos</li>
+                </ul>
+
+                <h3>12. SUSPENSIÓN Y TERMINACIÓN</h3>
+                <p>Nos reservamos el derecho de suspender o terminar su cuenta si:</p>
+                <ul>
+                    <li>Viola estos Términos y Condiciones</li>
+                    <li>Proporciona información falsa o engañosa</li>
+                    <li>Participa en actividades fraudulentas</li>
+                    <li>Recibe múltiples quejas de otros usuarios</li>
+                    <li>No paga por servicios recibidos</li>
+                </ul>
+
+                <h3>13. MODIFICACIONES A LOS TÉRMINOS</h3>
+                <p>"Tu Oficio" se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán efectivas inmediatamente después de su publicación en la plataforma. El uso continuo de la plataforma después de dichas modificaciones constituye su aceptación de los nuevos términos.</p>
+
+                <h3>14. DISPUTAS Y RESOLUCIÓN</h3>
+                <p>En caso de disputas entre usuarios y profesionales:</p>
+                <ul>
+                    <li>Ambas partes deben intentar resolver el problema directamente primero</li>
+                    <li>"Tu Oficio" puede actuar como mediador si se solicita</li>
+                    <li>Las disputas no resueltas pueden estar sujetas a arbitraje o resolución legal</li>
+                </ul>
+
+                <h3>15. LEY APLICABLE</h3>
+                <p>Estos términos se regirán e interpretarán de acuerdo con las leyes de Argentina, sin dar efecto a ningún principio de conflictos de leyes.</p>
+
+                <h3>16. CONTACTO</h3>
+                <p>Si tiene preguntas sobre estos Términos y Condiciones, puede contactarnos a través de:</p>
+                <ul>
+                    <li>Email: soporte&#64;tuoficio.com</li>
+                    <li>Teléfono: +54 (351) 123-4567</li>
+                    <li>Dirección: Córdoba, Argentina</li>
+                </ul>
+
+                <p class="terminos-footer">
+                    <strong>Fecha de última actualización:</strong> Noviembre 2025<br>
+                    Al hacer clic en "Acepto los Términos y Condiciones" durante el registro, usted reconoce que ha leído, entendido y acepta estar sujeto a estos términos.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-accept-btn" (click)="closeTermsModal()">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Éxito -->
+    <div class="modal-overlay" *ngIf="showSuccessModal()" (click)="closeSuccessModal()">
+        <div class="modal-content success-modal" (click)="$event.stopPropagation()">
+            <div class="modal-header success-header">
+                <h2>✓ Registro Exitoso</h2>
+                <button class="modal-close" (click)="closeSuccessModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>{{ modalMessage() }}</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-accept-btn success-btn" (click)="closeSuccessModal()">Ir al Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Error -->
+    <div class="modal-overlay" *ngIf="showErrorModal()" (click)="closeErrorModal()">
+        <div class="modal-content error-modal" (click)="$event.stopPropagation()">
+            <div class="modal-header error-header">
+                <h2>✕ Error en el Registro</h2>
+                <button class="modal-close" (click)="closeErrorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>{{ modalMessage() }}</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-accept-btn error-btn" (click)="closeErrorModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>

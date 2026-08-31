@@ -1,0 +1,236 @@
+<div class="trabajos-container">
+  <!-- Header -->
+  <header class="page-header">
+    <button class="btn btn-outline-light back-btn" (click)="goBack()">
+      <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+      <span class="ms-2">Volver al Inicio</span>
+    </button>
+
+    <div class="text-center mt-4">
+      <h1 class="display-5 fw-bold text-white mb-2">
+        <lucide-angular [img]="FileText" size="32" class="me-2"></lucide-angular>
+        Mis Trabajos Finalizados
+      </h1>
+      <p class="text-white fs-5 mb-2">Historial completo de trabajos realizados</p>
+      <div class="title-underline mx-auto"></div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoadingTrabajos()" class="loading-container">
+    <div class="spinner-border text-light" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="text-white mt-3">Cargando trabajos...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!isLoadingTrabajos() && trabajosFinalizados().length === 0"
+    class="empty-state"
+  >
+    <lucide-angular [img]="FileText" size="64" class="mb-3 text-white-50"></lucide-angular>
+    <h3 class="text-white mb-2">No hay trabajos finalizados</h3>
+    <p class="text-white-50">Cuando completes trabajos, aparecerán aquí</p>
+    <button class="btn btn-primary mt-3" (click)="goBack()">
+      Buscar Profesionales
+    </button>
+  </div>
+
+  <!-- Trabajos Table -->
+  <div
+    *ngIf="!isLoadingTrabajos() && trabajosFinalizados().length > 0"
+    class="trabajos-section"
+  >
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Profesional</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Fecha Finalización</th>
+                <th>Monto</th>
+                <th class="text-center">Pago</th>
+                <th class="text-center">Reseña</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let trabajo of getPaginatedTrabajos()">
+                <td>
+                  <strong>{{ trabajo.profesional }}</strong>
+                </td>
+                <td>{{ trabajo.descripcion }}</td>
+                <td>
+                  <span class="badge" [ngClass]="getEstadoBadgeClass(trabajo.estado)">
+                    {{ trabajo.estado }}
+                  </span>
+                </td>
+                <td>{{ formatDate(trabajo.fechaFinalizacion) }}</td>
+                <td>
+                  <strong>{{ formatMoneda(trabajo.montoFinal) }}</strong>
+                </td>
+                <td class="text-center">
+                  <!-- Botón Pagar si hay pago pendiente -->
+                  <button
+                    *ngIf="trabajo.idpago && trabajo.estadoPago !== 'APROBADO'"
+                    class="btn btn-warning btn-sm"
+                    (click)="irAPago(trabajo.idpago)"
+                  >
+                    <lucide-angular [img]="DollarSign" size="16"></lucide-angular>
+                    <span class="ms-1">Pagar</span>
+                  </button>
+
+                  <!-- Badge Pagado si está aprobado -->
+                  <span
+                    *ngIf="trabajo.estadoPago === 'APROBADO'"
+                    class="badge bg-success"
+                  >
+                    <lucide-angular [img]="CheckCircle" size="14"></lucide-angular>
+                    Pagado
+                  </span>
+
+                  <!-- Badge Pendiente si no hay pago -->
+                  <span
+                    *ngIf="!trabajo.idpago && trabajo.estadoPago !== 'APROBADO'"
+                    class="badge bg-secondary"
+                  >
+                    Pendiente
+                  </span>
+                </td>
+                <td class="text-center resenia-cell">
+                  <div class="d-flex align-items-center justify-content-center gap-2">
+                    <!-- Botón Reseñar solo si está pagado y NO tiene reseña -->
+                    <button
+                      *ngIf="trabajo.estadoPago === 'APROBADO' && !trabajo.tieneResenia"
+                      class="btn btn-primary btn-sm resenia-pendiente"
+                      (click)="abrirModalResenia(trabajo)"
+                    >
+                      <lucide-angular [img]="Star" size="16"></lucide-angular>
+                      <span class="ms-1">Reseñar</span>
+                    </button>
+
+                    <!-- Badge Ya Reseñado si está pagado y TIENE reseña -->
+                    <span
+                      *ngIf="trabajo.estadoPago === 'APROBADO' && trabajo.tieneResenia"
+                      class="badge bg-success trabajo-reseniado"
+                    >
+                      <lucide-angular [img]="CheckCircle" size="14"></lucide-angular>
+                      Ya Reseñado
+                    </span>
+
+                    <!-- Botón Descargar Comprobante si está pagado -->
+                    <button
+                      *ngIf="trabajo.estadoPago === 'APROBADO'"
+                      class="btn btn-outline-primary btn-sm"
+                      (click)="trabajo.nroFactura ? descargarComprobante(trabajo.nroFactura!) : null"
+                      [disabled]="!trabajo.nroFactura"
+                      title="Descargar Comprobante"
+                    >
+                      <lucide-angular [img]="Download" size="16"></lucide-angular>
+                    </button>
+
+                    <!-- Guion si no está pagado -->
+                    <span
+                      *ngIf="trabajo.estadoPago !== 'APROBADO'"
+                      class="text-muted"
+                    >
+                      -
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" *ngIf="totalPages() > 1">
+          <nav aria-label="Paginación de trabajos">
+            <ul class="pagination justify-content-center">
+              <li class="page-item" [class.disabled]="currentPage() === 1">
+                <button class="page-link" (click)="previousPage()" [disabled]="currentPage() === 1">
+                  &laquo; Anterior
+                </button>
+              </li>
+              
+              <li *ngFor="let page of getPageNumbers()" 
+                  class="page-item" 
+                  [class.active]="page === currentPage()"
+                  [class.disabled]="page === -1">
+                <button 
+                  *ngIf="page !== -1" 
+                  class="page-link" 
+                  (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+                <span *ngIf="page === -1" class="page-link">...</span>
+              </li>
+              
+              <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                <button class="page-link" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+                  Siguiente &raquo;
+                </button>
+              </li>
+            </ul>
+          </nav>
+          
+          <div class="pagination-info text-center mt-2">
+            <small class="text-muted">
+              Página {{ currentPage() }} de {{ totalPages() }} - 
+              Mostrando {{ getPaginatedTrabajos().length }} de {{ trabajosFinalizados().length }} trabajos
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row g-3 mt-4">
+      <div class="col-md-4">
+        <div class="card stat-card">
+          <div class="card-body text-center">
+            <lucide-angular [img]="FileText" size="32" class="mb-2 text-primary"></lucide-angular>
+            <h3 class="mb-1">{{ trabajosFinalizados().length }}</h3>
+            <p class="text-muted mb-0">Trabajos Finalizados</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card stat-card">
+          <div class="card-body text-center">
+            <lucide-angular [img]="CheckCircle" size="32" class="mb-2 text-success"></lucide-angular>
+            <h3 class="mb-1">
+              {{ trabajosPagados() }}
+            </h3>
+            <p class="text-muted mb-0">Trabajos Pagados</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card stat-card">
+          <div class="card-body text-center">
+            <lucide-angular [img]="Star" size="32" class="mb-2 text-warning"></lucide-angular>
+            <h3 class="mb-1">
+              {{ resenasEnviadas() }}
+            </h3>
+            <p class="text-muted mb-0">Reseñas Enviadas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Reseña -->
+<app-resenia-modal
+  *ngIf="showReseniaModal() && selectedTrabajoForResenia()"
+  [idUsuario]="authService.getCurrentUser()?.id || 0"
+  [idProfesional]="selectedTrabajoForResenia()!.idProfesional || 0"
+  [idTrabajo]="selectedTrabajoForResenia()!.trabajo.idTrabajo"
+  [nombreProfesional]="selectedTrabajoForResenia()!.trabajo.profesional"
+  (cerrar)="cerrarModalResenia()"
+  (reseniaEnviada)="onReseniaEnviada()"
+></app-resenia-modal>

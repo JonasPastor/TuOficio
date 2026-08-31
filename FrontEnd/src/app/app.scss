@@ -1,0 +1,81 @@
+// ============================================
+// VARIABLES GLOBALES - PALETA AZUL OSCURO
+// ============================================
+
+// Colores principales - Azul oscuro similar al sidebar
+$primary-color: #1e293b;      // Azul oscuro principal (sidebar)
+$secondary-color: #0f172a;    // Azul más oscuro
+$accent-color: #3b82f6;       // Azul brillante para acentos
+$tertiary-color: #334155;     // Azul gris intermedio
+
+// Colores de texto
+$text-dark: #0f172a;          // Azul muy oscuro para texto principal
+$text-medium: #475569;        // Gris azulado para texto secundario
+$text-light: #64748b;         // Gris neutro
+$text-placeholder: #94a3b8;   // Gris placeholder
+
+// Colores de interfaz
+$border-light: #e2e8f0;       // Bordes claros
+$border-dark: #334155;        // Bordes oscuros
+$white: #ffffff;              // Blanco puro
+$background-light: #f1f5f9;   // Fondo claro alternativo
+$background-dark: #1e293b;    // Fondo oscuro
+
+// Estados y feedback
+$success-color: #10b981;      // Verde para éxito
+$warning-color: #f59e0b;      // Amarillo para advertencias
+$error-color: #ef4444;        // Rojo para errores
+$info-color: #3b82f6;         // Azul para información
+
+// Variaciones tonales adicionales
+$primary-light: #334155;      // Versión clara del primario
+$primary-dark: #0f172a;       // Versión oscura del primario
+$secondary-light: #1e293b;    // Versión clara del secundario
+$secondary-dark: #020617;     // Versión más oscura del secundario
+
+// Transparencias útiles
+$primary-alpha-10: rgba(30, 41, 59, 0.1);
+$primary-alpha-20: rgba(30, 41, 59, 0.2);
+$primary-alpha-50: rgba(30, 41, 59, 0.5);
+$secondary-alpha-10: rgba(15, 23, 42, 0.1);
+$secondary-alpha-20: rgba(15, 23, 42, 0.2);
+
+// ============================================
+// MIXIN + CLASE REUSABLE PARA BACKGROUND
+// ============================================
+
+// Mixin reutilizable que permite incluir estilos de fondo en cualquier selector
+@mixin app-bg {
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 50%, $primary-color 100%);
+  position: relative;
+  min-height: 100vh;
+
+  // Overlay sutil con patrón de puntos
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  // Variante con overlay más sutil
+  &.subtle::before {
+    opacity: 0.2;
+  }
+
+  // Variante sin patrón
+  &.clean::before {
+    display: none;
+  }
+}
+
+// Clase utilitaria que usa el mixin (para aplicar por clase en plantillas)
+.app-bg {
+  @include app-bg;
+}

@@ -1,0 +1,138 @@
+<div class="resenas-container">
+  <header class="page-header">
+    <button class="btn btn-outline-light back-btn mb-3" (click)="goBack()">
+      <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+      <span class="ms-2">Volver al Dashboard</span>
+    </button>
+    <div class="text-center mt-4">
+      <h1 class="display-5 fw-bold text-white mb-2 d-flex align-items-center justify-content-center">
+        <lucide-angular [img]="Star" size="32" class="me-2"></lucide-angular>
+        Reseñas de Clientes
+      </h1>
+      <div class="title-underline mx-auto"></div>
+    </div>
+  </header>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-3">Cargando reseñas...</p>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="error" class="alert alert-danger my-4">
+    {{ error }}
+  </div>
+
+  <!-- Resumen de calificaciones -->
+  <div *ngIf="!loading && !error" class="rating-summary card shadow-sm mb-4">
+    <div class="card-body text-center py-4">
+      <div class="rating-score">
+        <h2 class="display-3 fw-bold mb-2">{{ promedioCalificacion | number:'1.1-1' }}</h2>
+        <div class="d-flex justify-content-center gap-1 mb-2">
+          <lucide-angular
+            *ngFor="let filled of getStarsArrayFromRating(promedioCalificacion)"
+            [img]="Star"
+            size="24"
+            class="star-icon text-warning">
+          </lucide-angular>
+        </div>
+        <p class="text-muted mb-0">{{ totalResenas }} reseñas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de reseñas -->
+  <div *ngIf="!loading && !error" class="resenas-content card shadow-sm">
+    <div class="card-body">
+      <div class="resenas-list">
+        <div *ngFor="let resena of getPaginatedResenas(); let last = last" 
+             class="resena-card" 
+             [class.border-bottom]="!last"
+             [class.pb-4]="!last"
+             [class.mb-4]="!last">
+          
+          <div class="row">
+            <div class="col-md-8">
+              <div class="d-flex gap-3 mb-3">
+                <div class="avatar">
+                  <lucide-angular [img]="User" size="20"></lucide-angular>
+                </div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-1">{{ resena.cliente }}</h5>
+                  <p class="text-muted small mb-0">{{ resena.servicio }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4 text-md-end">
+              <div class="d-flex flex-md-column align-items-md-end gap-2 mb-3">
+                <div class="d-flex gap-1">
+                  <lucide-angular
+                    *ngFor="let filled of getStarsArray(resena.calificacion)"
+                    [img]="Star"
+                    size="16"
+                    [class]="filled ? 'text-warning' : 'text-muted'">
+                  </lucide-angular>
+                </div>
+                <div class="d-flex align-items-center gap-1 text-muted small">
+                  <lucide-angular [img]="Calendar" size="14"></lucide-angular>
+                  <span>{{ resena.fecha | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="resena-body mb-3">
+            <p class="text-secondary mb-0">{{ resena.comentario }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="resenas.length === 0" class="alert alert-info text-center" role="alert">
+          <p class="mb-0">No hay reseñas disponibles todavía.</p>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination-container" *ngIf="totalPages > 1">
+        <nav aria-label="Paginación de reseñas">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                &laquo; Anterior
+              </button>
+            </li>
+            
+            <li *ngFor="let page of getPageNumbers()" 
+                class="page-item" 
+                [class.active]="page === currentPage"
+                [class.disabled]="page === -1">
+              <button 
+                *ngIf="page !== -1" 
+                class="page-link" 
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+              <span *ngIf="page === -1" class="page-link">...</span>
+            </li>
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                Siguiente &raquo;
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Página {{ currentPage }} de {{ totalPages }} - 
+            Mostrando {{ getPaginatedResenas().length }} de {{ totalResenas }} reseñas
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

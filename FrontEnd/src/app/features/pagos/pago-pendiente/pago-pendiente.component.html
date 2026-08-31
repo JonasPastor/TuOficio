@@ -1,0 +1,50 @@
+<div class="pago-resultado-container">
+  <div class="resultado-card pendiente">
+    <div class="icon-wrapper">
+      <lucide-angular [img]="Clock" [size]="80" class="icon-pending"></lucide-angular>
+    </div>
+
+    <h1 class="titulo">Pago Pendiente</h1>
+    <p class="mensaje">Tu pago está siendo procesado</p>
+
+    <div class="detalles" *ngIf="paymentId">
+      <div class="detalle-item">
+        <span class="label">ID de pago:</span>
+        <span class="valor">{{ paymentId }}</span>
+      </div>
+      <div class="detalle-item" *ngIf="status">
+        <span class="label">Estado:</span>
+        <span class="valor estado-badge">{{ status }}</span>
+      </div>
+      <div class="detalle-item" *ngIf="externalReference">
+        <span class="label">Referencia:</span>
+        <span class="valor">{{ externalReference }}</span>
+      </div>
+    </div>
+
+    <div class="info-pago">
+      <h3>¿Qué significa esto?</h3>
+      <p>
+        Tu pago está siendo verificado. Este proceso puede tomar desde algunos minutos
+        hasta 48 horas dependiendo del medio de pago utilizado.
+      </p>
+      <p class="destacado">
+        Te notificaremos por correo electrónico cuando el pago sea confirmado.
+      </p>
+    </div>
+
+    <div class="acciones">
+      <button class="btn btn-primary" (click)="volverAlInicio()">
+        <lucide-angular [img]="Home" [size]="18"></lucide-angular>
+        Volver al inicio
+      </button>
+      <button class="btn btn-secondary" (click)="verMisSolicitudes()">
+        Ver mis solicitudes
+      </button>
+    </div>
+
+    <div class="info-adicional">
+      <p>No es necesario que realices ninguna acción adicional</p>
+    </div>
+  </div>
+</div>

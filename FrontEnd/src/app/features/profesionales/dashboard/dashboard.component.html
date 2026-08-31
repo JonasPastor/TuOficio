@@ -1,0 +1,743 @@
+<div class="dashboard-container">
+  <!-- ====== VISTA PRINCIPAL DEL DASHBOARD ====== -->
+  <div *ngIf="!mostrarVistaSolicitudes()">
+    <!-- Header -->
+    <header class="dashboard-header mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+        <button class="btn btn-outline-light back-btn" (click)="goBack()">
+          <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+          <span class="ms-2">Volver al Inicio</span>
+        </button>
+        <button class="btn btn-danger logout-btn" (click)="logout()" title="Cerrar sesión">
+          <lucide-angular [img]="LogOut" size="20"></lucide-angular>
+          <span class="ms-2">Cerrar sesión</span>
+        </button>
+      </div>
+      <div class="text-center">
+        <h1 class="display-5 fw-bold text-white mb-2">Dashboard Profesional</h1>
+        <p class="text-white fs-5 mb-2">Bienvenido, <strong>{{ userName() }}</strong></p>
+        <div class="title-underline mx-auto"></div>
+      </div>
+    </header>
+
+    <!-- Metrics Grid -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+        <h2 class="section-title mb-0">Resumen de Métricas</h2>
+
+        <!-- Filtro de Fechas -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <lucide-angular [img]="Filter" size="20" class="text-white"></lucide-angular>
+            <label class="text-white mb-0">Desde:</label>
+            <input
+              type="date"
+              class="form-control form-control-sm"
+              [value]="fechaDesde()"
+              (change)="fechaDesde.set($any($event.target).value)"
+              style="width: 150px;">
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="text-white mb-0">Hasta:</label>
+            <input
+              type="date"
+              class="form-control form-control-sm"
+              [value]="fechaHasta()"
+              (change)="fechaHasta.set($any($event.target).value)"
+              style="width: 150px;">
+          </div>
+          <button
+            class="btn btn-sm btn-primary"
+            (click)="aplicarFiltroFechas()"
+            [disabled]="isLoadingMetrics()">
+            <span *ngIf="!isLoadingMetrics()">Aplicar</span>
+            <span *ngIf="isLoadingMetrics()" class="spinner-border spinner-border-sm" role="status"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-4">
+        <div *ngFor="let metric of metrics()" class="col-12 col-md-6 col-lg-4">
+          <div class="card metric-card h-100">
+            <div class="card-body d-flex gap-3">
+              <div class="metric-icon flex-shrink-0">
+                <lucide-angular [img]="metric.icon" size="24"></lucide-angular>
+              </div>
+              <div class="flex-grow-1">
+                <p class="text-white small mb-1">{{ metric.title }}</p>
+                <h3 class="h2 fw-bold mb-2 text-white">{{ metric.value }}</h3>
+                <div class="d-flex align-items-center gap-1 small"
+                     [class.text-success]="metric.trend === 'up'"
+                     [class.text-danger]="metric.trend === 'down'">
+                  <lucide-angular [img]="TrendingUp" size="14"></lucide-angular>
+                  <span>{{ metric.change }} vs mes anterior</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- Mis Trabajos -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0 d-flex align-items-center gap-2">
+          <lucide-angular [img]="FileText" size="24"></lucide-angular>
+          Mis Trabajos
+        </h2>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoadingTrabajos()" class="text-center py-5">
+        <div class="spinner-border text-light" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-white mt-3">Cargando trabajos...</p>
+      </div>
+
+      <!-- Tabla de Trabajos -->
+      <div *ngIf="!isLoadingTrabajos()" class="card">
+        <div class="card-body">
+          <div *ngIf="trabajos().length === 0" class="text-center py-5">
+            <lucide-angular [img]="FileText" size="48" class="text-muted mb-3"></lucide-angular>
+            <p class="text-muted">No hay trabajos registrados</p>
+          </div>
+
+          <div *ngIf="trabajos().length > 0" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Cliente</th>
+                  <th>Oficio</th>
+                  <th>Estado</th>
+                  <th>Fecha Inicio</th>
+                  <th>Fecha Fin</th>
+                  <th>Monto Final</th>
+                  <th>Estado Pago</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let trabajo of getPaginatedTrabajos()">
+                  <td>{{ trabajo.nombreCliente }}</td>
+                  <td>{{ trabajo.oficio }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getEstadoBadgeClass(trabajo.estado)">
+                      {{ trabajo.estado }}
+                    </span>
+                  </td>
+                  <td>{{ trabajo.fechaInicio ? formatDate(trabajo.fechaInicio) : '-' }}</td>
+                  <td>{{ trabajo.fechaFinalizacion ? formatDate(trabajo.fechaFinalizacion) : '-' }}</td>
+                  <td>{{ formatMoneda(trabajo.montoFinal) }}</td>
+                  <td>
+                    <span *ngIf="trabajo.estadoPago" class="badge bg-info">{{ trabajo.estadoPago }}</span>
+                    <span *ngIf="!trabajo.estadoPago">-</span>
+                  </td>
+                  <td>
+                    <div class="position-relative">
+                      <!-- Botón de tres puntos -->
+                      <button
+                        class="btn btn-sm btn-outline-secondary"
+                        (click)="toggleMenuAcciones(trabajo.idTrabajo, $event)"
+                        title="Acciones"
+                        [disabled]="actionLoading() === trabajo.idTrabajo">
+                        <lucide-angular [img]="MoreVertical" size="16"></lucide-angular>
+                      </button>
+
+                      <!-- Menú desplegable -->
+                      <div
+                        *ngIf="menuAccionesAbierto() === trabajo.idTrabajo"
+                        class="dropdown-menu-custom show"
+                        (click)="$event.stopPropagation()">
+
+                        <!-- Iniciar -->
+                        <button
+                          *ngIf="trabajo.estado === 'PENDIENTE'"
+                          class="dropdown-item-custom"
+                          (click)="iniciarTrabajoManual(trabajo.idTrabajo); cerrarMenuAcciones()"
+                          [disabled]="actionLoading() === trabajo.idTrabajo">
+                          <lucide-angular [img]="Play" size="16" class="me-2"></lucide-angular>
+                          Iniciar trabajo
+                        </button>
+
+                        <!-- Pausar -->
+                        <button
+                          *ngIf="trabajo.estado === 'EN_CURSO'"
+                          class="dropdown-item-custom"
+                          (click)="pausarTrabajoManual(trabajo.idTrabajo); cerrarMenuAcciones()"
+                          [disabled]="actionLoading() === trabajo.idTrabajo">
+                          <lucide-angular [img]="Pause" size="16" class="me-2"></lucide-angular>
+                          Pausar trabajo
+                        </button>
+
+                        <!-- Reanudar -->
+                        <button
+                          *ngIf="trabajo.estado === 'PAUSADO'"
+                          class="dropdown-item-custom"
+                          (click)="reanudarTrabajoManual(trabajo.idTrabajo); cerrarMenuAcciones()"
+                          [disabled]="actionLoading() === trabajo.idTrabajo">
+                          <lucide-angular [img]="Play" size="16" class="me-2"></lucide-angular>
+                          Reanudar trabajo
+                        </button>
+
+                        <!-- Finalizar -->
+                        <button
+                          *ngIf="trabajo.estado === 'EN_CURSO' || trabajo.estado === 'PAUSADO'"
+                          class="dropdown-item-custom"
+                          (click)="openFinalizarModal(trabajo.idTrabajo); cerrarMenuAcciones()"
+                          [disabled]="actionLoading() === trabajo.idTrabajo">
+                          <lucide-angular [img]="Square" size="16" class="me-2"></lucide-angular>
+                          Finalizar trabajo
+                        </button>
+
+                        <!-- Cancelar -->
+                        <button
+                          *ngIf="trabajo.estado !== 'FINALIZADO' && trabajo.estado !== 'CANCELADO'"
+                          class="dropdown-item-custom text-danger"
+                          (click)="openCancelarModal(trabajo.idTrabajo); cerrarMenuAcciones()"
+                          [disabled]="actionLoading() === trabajo.idTrabajo">
+                          <lucide-angular [img]="Ban" size="16" class="me-2"></lucide-angular>
+                          Cancelar trabajo
+                        </button>
+
+                        <!-- Sin acciones disponibles -->
+                        <div
+                          *ngIf="trabajo.estado === 'FINALIZADO' || trabajo.estado === 'CANCELADO'"
+                          class="dropdown-item-custom text-muted disabled">
+                          Sin acciones disponibles
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación de Trabajos -->
+          <div class="pagination-container" *ngIf="totalPagesTrabajos() > 1">
+            <nav aria-label="Paginación de trabajos">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="currentPageTrabajos() === 1">
+                  <button class="page-link" (click)="previousPageTrabajos()" [disabled]="currentPageTrabajos() === 1">
+                    &laquo; Anterior
+                  </button>
+                </li>
+                
+                <li *ngFor="let page of getPageNumbersTrabajos()" 
+                    class="page-item" 
+                    [class.active]="page === currentPageTrabajos()"
+                    [class.disabled]="page === -1">
+                  <button 
+                    *ngIf="page !== -1" 
+                    class="page-link" 
+                    (click)="goToPageTrabajos(page)">
+                    {{ page }}
+                  </button>
+                  <span *ngIf="page === -1" class="page-link">...</span>
+                </li>
+                
+                <li class="page-item" [class.disabled]="currentPageTrabajos() === totalPagesTrabajos()">
+                  <button class="page-link" (click)="nextPageTrabajos()" [disabled]="currentPageTrabajos() === totalPagesTrabajos()">
+                    Siguiente &raquo;
+                  </button>
+                </li>
+              </ul>
+            </nav>
+            
+            <div class="pagination-info text-center mt-2">
+              <small class="text-muted">
+                Página {{ currentPageTrabajos() }} de {{ totalPagesTrabajos() }} - 
+                Mostrando {{ getPaginatedTrabajos().length }} de {{ trabajos().length }} trabajos
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="mb-5">
+      <h2 class="section-title">Acciones Rápidas</h2>
+      <div class="row g-3">
+        <!-- NUEVO: Botón de Solicitudes con Mapa -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="card action-card h-100" (click)="verTodasLasSolicitudes()">
+            <div class="card-body text-center">
+              <div class="action-icon solicitudes mx-auto mb-3">
+                <lucide-angular [img]="Inbox" size="28"></lucide-angular>
+              </div>
+              <h3 class="h5 mb-2">Solicitudes</h3>
+              <p class="text-white small mb-0">Ver solicitudes del profesional</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="card action-card h-100" (click)="goToInvoices()">
+            <div class="card-body text-center">
+              <div class="action-icon invoices mx-auto mb-3">
+                <lucide-angular [img]="File" size="28"></lucide-angular>
+              </div>
+              <h3 class="h5 mb-2">Facturas</h3>
+              <p class="text-white small mb-0">Ver y gestionar tus facturas generadas</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="card action-card h-100" (click)="goToReviews()">
+            <div class="card-body text-center">
+              <div class="action-icon reviews mx-auto mb-3">
+                <lucide-angular [img]="Star" size="28"></lucide-angular>
+              </div>
+              <h3 class="h5 mb-2">Reseñas</h3>
+              <p class="text-white small mb-0">Consultar valoraciones y comentarios de clientes</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="card action-card h-100" (click)="goToMessages()">
+            <div class="card-body text-center">
+              <div class="action-icon messages mx-auto mb-3">
+                <lucide-angular [img]="Mail" size="28"></lucide-angular>
+              </div>
+              <h3 class="h5 mb-2">Mensajería</h3>
+              <p class="text-white small mb-0">Chat con clientes y gestión de conversaciones</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ====== VISTA DE SOLICITUDES CON MAPA ====== -->
+  <div *ngIf="mostrarVistaSolicitudes()">
+    <!-- Header de Vista de Solicitudes -->
+    <header class="dashboard-header mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+        <button class="btn btn-outline-light back-btn" (click)="volverAlDashboard()">
+          <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+          <span class="ms-2">Volver al Dashboard</span>
+        </button>
+        <button class="btn btn-danger logout-btn" (click)="logout()" title="Cerrar sesión">
+          <lucide-angular [img]="LogOut" size="20"></lucide-angular>
+          <span class="ms-2">Cerrar sesión</span>
+        </button>
+      </div>
+      <div class="text-center">
+        <h1 class="display-5 fw-bold text-white mb-2">
+          <lucide-angular [img]="Inbox" size="40" class="me-2"></lucide-angular>
+          Solicitudes Recibidas
+        </h1>
+        <p class="text-white fs-5">Gestiona tus solicitudes con información detallada</p>
+        <div class="title-underline mx-auto"></div>
+      </div>
+    </header>
+
+    <!-- Loading -->
+    <div *ngIf="isLoadingSolicitudesConMapa()" class="text-center py-5">
+      <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-white mt-3">Cargando solicitudes...</p>
+    </div>
+
+    <!-- Sin solicitudes -->
+    <div *ngIf="!isLoadingSolicitudesConMapa() && solicitudesConMapa().length === 0" class="text-center py-5">
+      <lucide-angular [img]="Inbox" size="64" class="text-white-50 mb-3"></lucide-angular>
+      <p class="text-white mt-3 fs-5">No tienes solicitudes pendientes</p>
+    </div>
+
+    <!-- Lista de solicitudes con mapa -->
+    <div *ngIf="!isLoadingSolicitudesConMapa() && solicitudesConMapa().length > 0" class="row g-4">
+      <div *ngFor="let solicitud of solicitudesConMapa()" class="col-12">
+        <div class="card solicitud-card-mapa">
+          <div class="card-header-custom">
+            <div class="cliente-info">
+              <lucide-angular [img]="Users" size="32" class="text-white"></lucide-angular>
+              <h5>{{ solicitud.nombreCliente }} {{ solicitud.apellidoCliente }}</h5>
+            </div>
+            <span class="badge" [ngClass]="getBadgeClassSolicitud(solicitud.estado)">
+              {{ solicitud.estado }}
+            </span>
+          </div>
+
+          <div class="card-body-custom">
+            <div class="info-item">
+              <lucide-angular [img]="Calendar" size="20" class="text-primary"></lucide-angular>
+              <span><strong>Fecha:</strong> {{ formatDate(solicitud.fechaSolicitud) }}</span>
+            </div>
+            <div class="info-item">
+              <lucide-angular [img]="Clock" size="20" class="text-primary"></lucide-angular>
+              <span><strong>Hora:</strong> {{ getHoraReserva(solicitud.horaReserva) }}</span>
+            </div>
+            <div class="info-item">
+              <lucide-angular [img]="MapPin" size="20" class="text-primary"></lucide-angular>
+              <span><strong>Dirección:</strong> {{ solicitud.direccionCompleta || 'No disponible' }}</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-outline-primary btn-sm" (click)="verDetalleSolicitudMapa(solicitud)">
+              <lucide-angular [img]="MapPin" size="18" class="me-1"></lucide-angular>
+              Ver Detalle con Mapa
+            </button>
+            <button
+              *ngIf="solicitud.estado === 'PENDIENTE'"
+              class="btn btn-success btn-sm"
+              (click)="aceptarSolicitudConMapa(solicitud.idSolicitud)"
+              [disabled]="respondingToSolicitud() === solicitud.idSolicitud">
+              <lucide-angular [img]="Check" size="18" class="me-1"></lucide-angular>
+              Aceptar
+            </button>
+            <button
+              *ngIf="solicitud.estado === 'PENDIENTE'"
+              class="btn btn-danger btn-sm"
+              (click)="rechazarSolicitudConMapa(solicitud.idSolicitud)"
+              [disabled]="respondingToSolicitud() === solicitud.idSolicitud">
+              <lucide-angular [img]="XIcon" size="18" class="me-1"></lucide-angular>
+              Rechazar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginación de Solicitudes -->
+    <div *ngIf="!isLoadingSolicitudesConMapa() && totalPaginas() > 1" class="pagination-container mt-4">
+      <nav aria-label="Paginación de solicitudes">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="!tieneAnteriorPagina()">
+            <button class="page-link" (click)="cargarPaginaAnterior()" [disabled]="!tieneAnteriorPagina()">
+              &laquo; Anterior
+            </button>
+          </li>
+          
+          <li *ngFor="let page of getPageNumbersSolicitudes()" 
+              class="page-item" 
+              [class.active]="page === paginaActual()"
+              [class.disabled]="page === -1">
+            <button 
+              *ngIf="page !== -1" 
+              class="page-link" 
+              (click)="goToPageSolicitudes(page)">
+              {{ page + 1 }}
+            </button>
+            <span *ngIf="page === -1" class="page-link">...</span>
+          </li>
+          
+          <li class="page-item" [class.disabled]="!tieneSiguientePagina()">
+            <button class="page-link" (click)="cargarSiguientePagina()" [disabled]="!tieneSiguientePagina()">
+              Siguiente &raquo;
+            </button>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="pagination-info text-center mt-2">
+        <small class="text-white-50">
+          Página {{ paginaActual() + 1 }} de {{ totalPaginas() }} - 
+          Mostrando {{ solicitudesConMapa().length }} de {{ totalElementos() }} solicitudes
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODAL DE DETALLE CON MAPA ====== -->
+<div *ngIf="showDetalleMapaModal() && solicitudSeleccionadaMapa()"
+     class="modal fade show d-block"
+     tabindex="-1"
+     (click)="cerrarDetalleMapaModal()">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <lucide-angular [img]="FileText" size="24" class="me-2"></lucide-angular>
+          Detalle de Solicitud - {{ solicitudSeleccionadaMapa().nombreCliente }} {{ solicitudSeleccionadaMapa().apellidoCliente }}
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarDetalleMapaModal()"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <!-- Columna izquierda: Información -->
+          <div class="col-lg-5">
+            <!-- Información del cliente -->
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">
+                  <lucide-angular [img]="Users" size="20" class="me-2"></lucide-angular>
+                  Información del Cliente
+                </h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Nombre:</strong><br>
+                {{ solicitudSeleccionadaMapa().nombreCliente }} {{ solicitudSeleccionadaMapa().apellidoCliente }}</p>
+
+                <p *ngIf="solicitudSeleccionadaMapa().telefonoCliente">
+                  <strong>Teléfono:</strong><br>
+                  <a [href]="'tel:' + solicitudSeleccionadaMapa().telefonoCliente" class="text-decoration-none">
+                    {{ solicitudSeleccionadaMapa().telefonoCliente }}
+                  </a>
+                </p>
+
+                <p *ngIf="solicitudSeleccionadaMapa().emailCliente">
+                  <strong>Email:</strong><br>
+                  <a [href]="'mailto:' + solicitudSeleccionadaMapa().emailCliente" class="text-decoration-none">
+                    {{ solicitudSeleccionadaMapa().emailCliente }}
+                  </a>
+                </p>
+              </div>
+            </div>
+
+            <!-- Detalles del servicio -->
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">
+                  <lucide-angular [img]="FileText" size="20" class="me-2"></lucide-angular>
+                  Detalles del Servicio
+                </h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Oficio:</strong> {{ solicitudSeleccionadaMapa().oficio }}</p>
+                <p><strong>Fecha solicitada:</strong> {{ formatDate(solicitudSeleccionadaMapa().fechaServicio) }}</p>
+                <p><strong>Hora:</strong> {{ getHoraReserva(solicitudSeleccionadaMapa().horaReserva) }}</p>
+                <p *ngIf="solicitudSeleccionadaMapa().descripcion">
+                  <strong>Descripción:</strong><br>
+                  {{ solicitudSeleccionadaMapa().descripcion }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha: MAPA -->
+          <div class="col-lg-7">
+            <div class="card h-100">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">
+                  <lucide-angular [img]="MapPin" size="20" class="me-2"></lucide-angular>
+                  Ubicación del Cliente
+                </h6>
+              </div>
+              <div class="card-body p-0" style="min-height: 500px;">
+                <app-solicitud-map
+                  [solicitud]="solicitudSeleccionadaMapa()"
+                  [mapId]="'modal-map-' + solicitudSeleccionadaMapa().idSolicitud">
+                </app-solicitud-map>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cerrarDetalleMapaModal()">
+          <lucide-angular [img]="XIcon" size="18" class="me-1"></lucide-angular>
+          Cerrar
+        </button>
+
+        <button
+          *ngIf="solicitudSeleccionadaMapa().estado === 'PENDIENTE'"
+          type="button"
+          class="btn btn-danger"
+          (click)="rechazarSolicitudConMapa(solicitudSeleccionadaMapa().idSolicitud)"
+          [disabled]="respondingToSolicitud() === solicitudSeleccionadaMapa().idSolicitud">
+          <lucide-angular [img]="XIcon" size="18" class="me-1"></lucide-angular>
+          Rechazar
+        </button>
+
+        <button
+          *ngIf="solicitudSeleccionadaMapa().estado === 'PENDIENTE'"
+          type="button"
+          class="btn btn-success"
+          (click)="aceptarSolicitudConMapa(solicitudSeleccionadaMapa().idSolicitud)"
+          [disabled]="respondingToSolicitud() === solicitudSeleccionadaMapa().idSolicitud">
+          <lucide-angular [img]="Check" size="18" class="me-1"></lucide-angular>
+          {{ respondingToSolicitud() === solicitudSeleccionadaMapa().idSolicitud ? 'Procesando...' : 'Aceptar Solicitud' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="showDetalleMapaModal()" class="modal-backdrop fade show"></div>
+
+<!-- ====== MODALES EXISTENTES (Finalizar, Cancelar, Respuesta) ====== -->
+
+<!-- Modal de Finalizar Trabajo -->
+<div *ngIf="showFinalizarModal()" class="modal fade show d-block" tabindex="-1" (click)="closeFinalizarModal()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Finalizar Trabajo</h5>
+        <button type="button" class="btn-close" (click)="closeFinalizarModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Complete los siguientes campos para finalizar el trabajo:</p>
+
+        <div class="mb-3">
+          <label for="descripcionFinal" class="form-label">Descripción de finalización *</label>
+          <textarea
+            id="descripcionFinal"
+            class="form-control"
+            rows="4"
+            placeholder="Describa el trabajo realizado, materiales utilizados, etc."
+            [value]="descripcionFinalizacion()"
+            (input)="descripcionFinalizacion.set($any($event.target).value)">
+          </textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="costoFinal" class="form-label">Costo final del trabajo (ARS) *</label>
+          <input
+            id="costoFinal"
+            type="number"
+            class="form-control"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            [value]="costoFinalTrabajo()"
+            (input)="costoFinalTrabajo.set(+$any($event.target).value)"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeFinalizarModal()">Cancelar</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="confirmarFinalizarTrabajo()"
+          [disabled]="!descripcionFinalizacion() || costoFinalTrabajo() <= 0">
+          Confirmar Finalización
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="showFinalizarModal()" class="modal-backdrop fade show"></div>
+
+<!-- Modal de Cancelar Trabajo -->
+<div *ngIf="showCancelarModal()" class="modal fade show d-block" tabindex="-1" (click)="closeCancelarModal()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <lucide-angular [img]="Ban" size="24"></lucide-angular>
+          Cancelar Trabajo
+        </h5>
+        <button type="button" class="btn-close" (click)="closeCancelarModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Por favor indique el motivo de cancelación del trabajo:</p>
+
+        <div class="mb-3">
+          <label for="motivoCancelacion" class="form-label">Motivo de cancelación *</label>
+          <textarea
+            id="motivoCancelacion"
+            class="form-control"
+            rows="4"
+            placeholder="Explique por qué se cancela el trabajo..."
+            [value]="motivoCancelacion()"
+            (input)="motivoCancelacion.set($any($event.target).value)">
+          </textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCancelarModal()">Volver</button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="confirmarCancelarTrabajo()"
+          [disabled]="!motivoCancelacion()">
+          Confirmar Cancelación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="showCancelarModal()" class="modal-backdrop fade show"></div>
+
+<!-- Modal de Confirmación -->
+<div *ngIf="showConfirmModal()" class="modal fade show d-block" tabindex="-1" (click)="closeConfirmModal()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header" [ngClass]="confirmModalType() === 'aceptar' ? 'modal-header-success' : 'modal-header-error'">
+        <lucide-angular
+          [img]="confirmModalType() === 'aceptar' ? Check : XIcon"
+          [size]="32"
+          [color]="confirmModalType() === 'aceptar' ? '#10b981' : '#ef4444'">
+        </lucide-angular>
+        <h3 class="mb-0">{{ confirmModalTitle() }}</h3>
+        <button type="button" class="btn-close-custom" (click)="closeConfirmModal()">×</button>
+      </div>
+      <div class="modal-body py-4 text-center">
+        <p class="modal-message mb-0">{{ confirmModalMessage() }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeConfirmModal()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          [ngClass]="confirmModalType() === 'aceptar' ? 'btn-success' : 'btn-danger'"
+          (click)="executeConfirmAction()">
+          <lucide-angular
+            [img]="confirmModalType() === 'aceptar' ? Check : XIcon"
+            size="18"
+            class="me-1">
+          </lucide-angular>
+          {{ confirmModalType() === 'aceptar' ? 'Sí, aceptar' : 'Sí, rechazar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="showConfirmModal()" class="modal-backdrop fade show"></div>
+
+<!-- Modal de Respuesta -->
+<div *ngIf="showResponseModal()" class="modal fade show d-block" tabindex="-1" (click)="closeResponseModal()">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header" [ngClass]="responseModalType() === 'success' ? 'modal-header-success' : 'modal-header-error'">
+        <lucide-angular
+          *ngIf="responseModalType() === 'success'"
+          [img]="CheckCircle"
+          [size]="32"
+          color="#10b981">
+        </lucide-angular>
+        <lucide-angular
+          *ngIf="responseModalType() === 'error'"
+          [img]="AlertCircle"
+          [size]="32"
+          color="#ef4444">
+        </lucide-angular>
+        <h3 class="mb-0">{{ responseModalType() === 'success' ? '¡Éxito!' : 'Error' }}</h3>
+        <button type="button" class="btn-close-custom" (click)="closeResponseModal()">×</button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <p class="modal-message mb-2">{{ responseModalMessage() }}</p>
+        <p class="modal-submessage" *ngIf="responseModalType() === 'success'">Los datos se han actualizado correctamente.</p>
+      </div>
+      <div class="modal-footer">
+        <button 
+          type="button" 
+          [ngClass]="responseModalType() === 'success' ? 'btn-success' : 'btn-danger'"
+          class="btn-block"
+          (click)="closeResponseModal()">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="showResponseModal()" class="modal-backdrop fade show"></div>
+
+

@@ -1,0 +1,103 @@
+<div class="notificaciones-overlay" *ngIf="isVisible()" (click)="close()"></div>
+
+<div class="notificaciones-modal" [class.active]="isVisible()">
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="d-flex align-items-center">
+      <lucide-angular [img]="Bell" size="24" class="text-primary me-2"></lucide-angular>
+      <h5 class="mb-0">Notificaciones</h5>
+      <span class="badge bg-primary ms-2" *ngIf="notificacionService.notificacionesNoLeidas() > 0">
+        {{ notificacionService.notificacionesNoLeidas() }}
+      </span>
+    </div>
+    <div class="d-flex gap-2">
+      <button 
+        *ngIf="notificaciones().length > 0" 
+        class="btn btn-sm btn-link text-primary" 
+        (click)="marcarTodasLeidas()"
+      >
+        Marcar todas como leídas
+      </button>
+      <button class="btn-close-modal" (click)="close()" aria-label="Cerrar">
+        <lucide-angular [img]="X" size="20"></lucide-angular>
+      </button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="modal-body">
+    <!-- Empty State -->
+    <div *ngIf="notificaciones().length === 0" class="empty-state">
+      <lucide-angular [img]="Bell" size="48" class="text-muted mb-3"></lucide-angular>
+      <p class="text-muted mb-0">No tienes notificaciones</p>
+    </div>
+
+    <!-- Lista de Notificaciones -->
+    <div *ngIf="notificaciones().length > 0" class="notificaciones-list">
+      <div 
+        *ngFor="let notificacion of notificaciones()"
+        class="notificacion-item"
+        [class.no-leida]="!notificacion.leida"
+        [ngClass]="getClaseNotificacion(notificacion.tipo)"
+        (click)="onNotificacionClick(notificacion)"
+      >
+        <div class="notificacion-icon">
+          <lucide-angular 
+            [img]="getIconoNotificacion(notificacion.tipo)" 
+            size="20"
+          ></lucide-angular>
+        </div>
+        
+        <div class="notificacion-content">
+          <div class="notificacion-titulo">
+            {{ notificacion.titulo }}
+            <span *ngIf="!notificacion.leida" class="badge-nuevo">NUEVA</span>
+          </div>
+          <div class="notificacion-mensaje">{{ notificacion.mensaje }}</div>
+          <div class="notificacion-fecha">{{ formatearFecha(notificacion.fecha) }}</div>
+        </div>
+
+        <button 
+          class="btn-eliminar"
+          (click)="eliminarNotificacion($event, notificacion.id)"
+          aria-label="Eliminar notificación"
+        >
+          <lucide-angular [img]="Trash2" size="16"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Cancelación -->
+<div class="modal-cancelacion-overlay" *ngIf="mostrarModalCancelacion()" (click)="cerrarModalCancelacion()"></div>
+<div class="modal-cancelacion" [class.active]="mostrarModalCancelacion()">
+  <div class="modal-cancelacion-header">
+    <div class="d-flex align-items-center">
+      <lucide-angular [img]="AlertCircle" size="24" class="text-danger me-2"></lucide-angular>
+      <h5 class="mb-0">Trabajo Cancelado</h5>
+    </div>
+    <button class="btn-close-modal" (click)="cerrarModalCancelacion()" aria-label="Cerrar">
+      <lucide-angular [img]="X" size="20"></lucide-angular>
+    </button>
+  </div>
+  
+  <div class="modal-cancelacion-body">
+    <div class="alert alert-danger mb-3">
+      <strong>{{ nombreProfesional() }}</strong> ha cancelado el trabajo
+    </div>
+    
+    <div class="motivo-section">
+      <h6 class="mb-2">Motivo de la cancelación:</h6>
+      <div class="motivo-content">
+        {{ motivoCancelacion() }}
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal-cancelacion-footer">
+    <button class="btn btn-primary" (click)="cerrarModalCancelacion()">
+      Entendido
+    </button>
+  </div>
+</div>

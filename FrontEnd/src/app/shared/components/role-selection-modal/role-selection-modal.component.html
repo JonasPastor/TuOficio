@@ -1,0 +1,19 @@
+<div class="modal-overlay" *ngIf="isVisible()">
+  <div class="modal-container">
+    <div class="roles-container">
+      <div class="role-card" (click)="selectRole('cliente')">
+        <div class="role-icon client">
+          <lucide-angular [img]="User" size="64"></lucide-angular>
+        </div>
+        <h3>CLIENTE</h3>
+      </div>
+
+      <div class="role-card" (click)="selectRole('profesional')">
+        <div class="role-icon professional">
+          <lucide-angular [img]="Briefcase" size="64"></lucide-angular>
+        </div>
+        <h3>PROFESIONAL</h3>
+      </div>
+    </div>
+  </div>
+</div>

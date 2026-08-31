@@ -1,0 +1,535 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Sidebar Toggle (Left) -->
+    <div class="navbar-left">
+      <button class="sidebar-toggle" (click)="toggleSidebar()">
+        <lucide-angular [img]="User" size="20"></lucide-angular>
+        <span *ngIf="isUserAuthenticated()">{{ getUserDisplayName() }}</span>
+        <span *ngIf="!isUserAuthenticated()">Cuenta</span>
+      </button>
+    </div>
+
+    <!-- Search Bar (Center) -->
+    <div class="navbar-center">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <lucide-angular [img]="Search" size="20" class="search-icon"></lucide-angular>
+          <input
+            type="text"
+            placeholder="Buscar profesional..."
+            class="search-input"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            (input)="onSearch()"
+          />
+
+          <!-- Filter by Zone Toggle -->
+          <label class="search-filter-zone">
+            <input
+              type="checkbox"
+              [(ngModel)]="filterByZone"
+              (change)="onSearch()"
+              class="zone-checkbox"
+            />
+            <span class="checkbox-label">Por zona</span>
+          </label>
+
+          <!-- Search Results Dropdown -->
+          <div *ngIf="showSearchResults()" class="search-results-dropdown">
+            <!-- Loading State -->
+            <div *ngIf="isLoadingSearchResults()" class="search-results-loading">
+              <p>Buscando profesionales...</p>
+            </div>
+
+            <!-- No Results State -->
+            <div *ngIf="!isLoadingSearchResults() && noSearchResultsFound()" class="search-results-empty">
+              <p>No se encontraron profesionales</p>
+              <small>Intenta con otro nombre o zona</small>
+            </div>
+
+            <!-- Results List -->
+            <div *ngIf="!isLoadingSearchResults() && !noSearchResultsFound() && searchResults().length > 0" class="search-results-list">
+              <div *ngFor="let professional of searchResults()" class="search-result-item" (click)="viewProfessionalProfile(professional)">
+                <div class="result-avatar">
+                  <lucide-angular [img]="User" size="32"></lucide-angular>
+                </div>
+                <div class="result-info">
+                  <h4 class="result-name">{{ getProfessionalDisplayName(professional) }}</h4>
+                  <p class="result-oficio">{{ professional.oficio }}</p>
+                  <p class="result-zona" *ngIf="professional.especialidades && professional.especialidades.length > 0">
+                    <lucide-angular [img]="MapPin" size="14" inline></lucide-angular>
+                    {{ professional.especialidades[0] }}
+                  </p>
+                </div>
+                <div class="result-rating">
+                  <lucide-angular [img]="Star" size="16" color="#fbbf24"></lucide-angular>
+                  <span>{{ professional.puntuacionPromedio || 'Sin reseñas' }}</span>
+                </div>
+              </div>
+
+              <!-- View All Button -->
+              <button class="view-all-results" (click)="showSearchResults.set(false)">
+                Ver más resultados
+              </button>
+            </div>
+
+            <!-- Close Button -->
+            <button *ngIf="showSearchResults()" class="close-search-results" (click)="closeSearchResults()">
+              <lucide-angular [img]="X" size="18"></lucide-angular>
+            </button>
+          </div>
+        </div>
+        <button class="search-btn" (click)="onSearch()">Buscar</button>
+
+        <!-- Onboarding Button -->
+        <app-onboarding></app-onboarding>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Floating Chat Button -->
+<button class="floating-chat-btn" (click)="goToChat()">
+  <lucide-angular [img]="MessageCircle" size="24"></lucide-angular>
+  <span *ngIf="mensajesNoLeidos() > 0" class="chat-badge">{{ mensajesNoLeidos() }}</span>
+</button>
+
+<!-- Sidebar -->
+<div class="sidebar-overlay" [class.active]="isSidebarOpen()" (click)="closeSidebar()"></div>
+<aside class="sidebar" [class.active]="isSidebarOpen()">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <lucide-angular [img]="Briefcase" size="32" class="logo-icon"></lucide-angular>
+      <span class="logo-text">Tu Oficio</span>
+    </div>
+  </div>
+
+  <!-- Menu Items -->
+  <nav class="sidebar-nav">
+    <!-- Authenticated Menu -->
+    <div *ngIf="isUserAuthenticated()" class="nav-section">
+      <div class="nav-section-title">Principal</div>
+      <button class="nav-item" (click)="goToProfile()">
+        <lucide-angular [img]="User" size="20"></lucide-angular>
+        <span>Mi Perfil</span>
+      </button>
+      <button class="nav-item" (click)="goToTrabajosFinalizados()">
+        <lucide-angular [img]="CalendarCheck" size="20"></lucide-angular>
+        <span>Mis Trabajos</span>
+      </button>
+      <button class="nav-item" (click)="notificacionesModal.toggle()">
+        <lucide-angular [img]="Bell" size="20"></lucide-angular>
+        <span>Notificaciones</span>
+        <span *ngIf="notificacionService.notificacionesNoLeidas() > 0" class="nav-badge">
+          {{ notificacionService.notificacionesNoLeidas() }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Professional Section -->
+    <div *ngIf="isUserAuthenticated()" class="nav-section">
+      <div class="nav-section-title">Profesional</div>
+      <button *ngIf="isProfessional()" class="nav-item" (click)="goToDashboard()">
+        <lucide-angular [img]="Briefcase" size="20"></lucide-angular>
+        <span>Dashboard</span>
+      </button>      <button *ngIf="isProfessional()" class="nav-item" (click)="goToPerfilProfesional()">
+        <lucide-angular [img]="User" [size]="20"></lucide-angular>
+        <span>Perfil profesional</span>
+      </button>      <button *ngIf="!isProfessional()" class="nav-item" (click)="goToRegisterProfessional()">
+        <lucide-angular [img]="UserPlus" size="20"></lucide-angular>
+        <span>Registrarse</span>
+      </button>
+    </div>
+
+    <!-- Guest Menu -->
+    <div *ngIf="!isUserAuthenticated()" class="nav-section">
+      <div class="nav-section-title">Cuenta</div>
+      <button class="nav-item" (click)="goToSignIn()">
+        <lucide-angular [img]="LogIn" size="20"></lucide-angular>
+        <span>Iniciar Sesión</span>
+      </button>
+      <button class="nav-item" (click)="goToSignUp()">
+        <lucide-angular [img]="UserPlus" size="20"></lucide-angular>
+        <span>Registrarse</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- User Profile & Logout (Bottom) -->
+  <div class="sidebar-footer">
+    <div *ngIf="isUserAuthenticated()" class="user-profile">
+      <div class="user-avatar">
+        <img
+          *ngIf="getUserAvatar()"
+          [src]="getUserAvatar()"
+          alt="Avatar"
+          class="avatar-image"
+          (error)="$event.target.src='assets/icons/user-placeholder.svg'">
+        <lucide-angular
+          *ngIf="!getUserAvatar()"
+          [img]="User"
+          size="24">
+        </lucide-angular>
+      </div>
+      <div class="user-info">
+        <div class="user-name">{{ getUserDisplayName() }}</div>
+        <div class="user-role">{{ isProfessional() ? 'Profesional' : 'Cliente' }}</div>
+      </div>
+    </div>
+    <button *ngIf="isUserAuthenticated()" class="logout-btn" (click)="logout()">
+      <lucide-angular [img]="LogOut" size="20"></lucide-angular>
+      <span>Cerrar Sesión</span>
+    </button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<div class="home-container">
+  <div class="home-content">
+    <!-- Services View -->
+    <div *ngIf="!showProfessionals()">
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <h1 class="hero-title">Encuentra profesionales locales de confianza</h1>
+          <p class="hero-subtitle">
+            Conecta con profesionales cualificados en tu zona. Obtén presupuestos, lee reseñas y
+            reserva servicios con total tranquilidad.
+          </p>
+        </div>
+        <div class="hero-divider"></div>
+      </section>
+
+      <!-- Services Catalog -->
+      <section class="services-section">
+        <div class="section-header">
+          <h2 class="section-title">Servicios Populares</h2>
+          <p class="section-subtitle">
+            Filtra por categoría para encontrar el profesional que buscas
+          </p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingServices()" class="loading-container">
+          <p>Cargando servicios...</p>
+        </div>
+
+        <!-- Services Grid -->
+        <div *ngIf="!isLoadingServices()" class="services-grid">
+          <div *ngFor="let service of services()" class="service-card">
+            <!-- Service Icon (Large) -->
+            <div class="service-icon">
+              <img
+                [src]="service.image"
+                [alt]="service.title"
+                onerror="this.src='assets/logos/logo.png'"
+              />
+            </div>
+
+            <!-- Card Content -->
+            <div class="service-content">
+              <h3 class="service-title">{{ service.title }}</h3>
+              <p class="service-description">{{ service.description }}</p>
+
+              <button class="view-professionals-btn" (click)="viewServiceProfessionals(service)">
+                Ver Profesionales
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Professionals Section -->
+      <section class="featured-professionals-section">
+        <div class="section-header">
+          <h2 class="section-title">Profesionales destacados</h2>
+          <p class="section-subtitle">
+            Los profesionales más solicitados del último mes. Todos cuentan con excelentes
+            valoraciones y experiencia comprobada.
+          </p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingFeaturedProfessionals()" class="loading-container">
+          <p>Cargando profesionales destacados...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoadingFeaturedProfessionals() && featuredProfessionals().length === 0" class="empty-state">
+          <p>No hay profesionales destacados en este momento.</p>
+        </div>
+
+        <!-- Professionals Grid -->
+        <div *ngIf="!isLoadingFeaturedProfessionals() && featuredProfessionals().length > 0" class="professionals-grid">
+          <app-professional-card
+            *ngFor="let professional of featuredProfessionals()"
+            [professional]="professional"
+            (contact)="contactProfessional($event)"
+            (viewProfile)="viewProfessionalProfile($event)"
+          >
+          </app-professional-card>
+        </div>
+      </section>
+    </div>
+
+    <!-- Professionals View -->
+    <div *ngIf="showProfessionals()">
+      <!-- Header with Back Button -->
+      <section class="professionals-header">
+        <button class="back-btn" (click)="backToServices()">
+          <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+          <span>Volver a Servicios</span>
+        </button>
+        <div class="service-info">
+          <h1 class="service-title">{{ selectedService()?.title }}</h1>
+          <p class="service-subtitle">
+            {{ selectedService()?.professionalCount }} profesionales disponibles
+          </p>
+        </div>
+      </section>
+
+      <!-- Professionals List -->
+      <main class="professionals-section">
+        <!-- Loading State -->
+        <div *ngIf="isLoadingProfessionals()" class="loading-container">
+          <p>Cargando profesionales...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoadingProfessionals() && noProfessionalsFound()" class="empty-state">
+          <div class="empty-state-icon">
+            <lucide-angular [img]="Users" size="64" color="white"></lucide-angular>
+          </div>
+          <h3 class="empty-state-title" style="color: white;">No hay profesionales disponibles</h3>
+          <p class="empty-state-message" style="color: white;">
+            Actualmente no hay profesionales registrados para el servicio de
+            <strong>{{ selectedService()?.title }}</strong
+            >. Te invitamos a revisar otros servicios o volver más tarde.
+          </p>
+        </div>
+
+        <!-- Professionals Grid -->
+        <div
+          *ngIf="!isLoadingProfessionals() && !noProfessionalsFound()"
+          class="professionals-grid"
+        >
+          <app-professional-card
+            *ngFor="let professional of getCurrentProfessionals()"
+            [professional]="professional"
+            (contact)="contactProfessional($event)"
+            (viewProfile)="viewProfessionalProfile($event)"
+          >
+          </app-professional-card>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="app-footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <!-- Company Info -->
+      <div class="footer-section">
+        <div class="footer-logo">
+          <img src="assets/logos/logo-blanco.png" alt="Logo" class="logo" />
+          <h3>Tu Oficio</h3>
+        </div>
+        <p>Conectamos profesionales con clientes de manera fácil y segura.</p>
+      </div>
+
+      <!-- Services -->
+      <div class="footer-section">
+        <h4>Servicios</h4>
+        <ul>
+          <li><a href="#">Plomería</a></li>
+          <li><a href="#">Electricidad</a></li>
+          <li><a href="#">Pintura</a></li>
+          <li><a href="#">Carpintería</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div class="footer-section">
+        <h4>Soporte</h4>
+        <ul>
+          <li><a href="#">Centro de Ayuda</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Términos y Condiciones</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div class="footer-section">
+        <h4>Contacto</h4>
+        <ul>
+          <li>info@tuoficio.com</li>
+          <li>+54 351 1234-5678</li>
+          <li>Córdoba Capital, Argentina</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2025 OficiosApp. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Modal de Solicitud -->
+<div *ngIf="showSolicitudModal()" class="modal-overlay" (click)="closeSolicitudModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Solicitar Servicio</h2>
+      <button class="close-btn" (click)="closeSolicitudModal()">
+        <lucide-angular [img]="X" size="24"></lucide-angular>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="professional-info">
+        <h3>{{ getProfessionalDisplayName(selectedProfessional()!) }}</h3>
+        <p class="professional-oficio">{{ selectedProfessional()?.oficio }}</p>
+        <p class="professional-phone">
+          <lucide-angular [img]="User" size="16"></lucide-angular>
+          {{ selectedProfessional()?.telefono }}
+        </p>
+      </div>
+
+      <form [formGroup]="solicitudForm" (ngSubmit)="enviarSolicitud()">
+        <div class="form-group">
+          <label for="fechaservicio">Fecha del Servicio</label>
+          <input
+            type="date"
+            id="fechaservicio"
+            formControlName="fechaservicio"
+            [min]="getMinDate()"
+            class="form-control"
+          />
+          <div
+            *ngIf="
+              solicitudForm.get('fechaservicio')?.invalid &&
+              solicitudForm.get('fechaservicio')?.touched
+            "
+            class="error-message"
+          >
+            La fecha es requerida y debe ser futura
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="observacion">Observaciones</label>
+          <textarea
+            id="observacion"
+            formControlName="observacion"
+            rows="4"
+            placeholder="Describe el servicio que necesitas..."
+            class="form-control"
+          ></textarea>
+          <div
+            *ngIf="
+              solicitudForm.get('observacion')?.invalid && solicitudForm.get('observacion')?.touched
+            "
+            class="error-message"
+          >
+            La observación es requerida (mínimo 10 caracteres)
+          </div>
+        </div>
+
+        <div *ngIf="solicitudError()" class="alert alert-error">
+          {{ solicitudError() }}
+        </div>
+
+        <div *ngIf="solicitudSuccess()" class="alert alert-success">
+          <lucide-angular [img]="CheckCircle" size="20"></lucide-angular>
+          ¡Solicitud enviada exitosamente!
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeSolicitudModal()"
+            [disabled]="isSendingSolicitud()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="solicitudForm.invalid || isSendingSolicitud()"
+          >
+            <lucide-angular *ngIf="!isSendingSolicitud()" [img]="Send" size="18"></lucide-angular>
+            <span>{{ isSendingSolicitud() ? 'Enviando...' : 'Enviar Solicitud' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Advertencia - Solicitud Pendiente -->
+<div
+  *ngIf="showPendingSolicitudWarning()"
+  class="modal-overlay"
+  (click)="closePendingWarningModal()"
+>
+  <div class="modal-content modal-warning" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="warning-icon">
+        <lucide-angular [img]="Clock" size="32" color="#f59e0b"></lucide-angular>
+      </div>
+      <h2>Solicitud Pendiente</h2>
+      <button class="close-btn" (click)="closePendingWarningModal()">
+        <lucide-angular [img]="X" size="24"></lucide-angular>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="warning-content">
+        <p class="warning-message">
+          Ya tienes una <strong>solicitud pendiente</strong> con
+          <strong>{{ getProfessionalDisplayName(selectedProfessional()!) }}</strong
+          >.
+        </p>
+        <p class="warning-subtitle">
+          Por favor espera a que el profesional responda tu solicitud actual antes de enviar una
+          nueva.
+        </p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary btn-block" (click)="closePendingWarningModal()">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Turnos -->
+<app-turno-modal
+  *ngIf="showTurnoModal() && selectedProfessional()"
+  [professional]="selectedProfessional()!"
+  [idUsuario]="authService.currentUser()?.id!"
+  (close)="closeTurnoModal()"
+  (turnoConfirmado)="onTurnoConfirmado($event)"
+></app-turno-modal>
+
+<!-- Modal de Reseña -->
+<app-resenia-modal
+  *ngIf="showReseniaModal() && selectedTrabajoForResenia()"
+  [idUsuario]="authService.getCurrentUser()?.id || 0"
+  [idProfesional]="selectedTrabajoForResenia()!.idProfesional || 0"
+  [idTrabajo]="selectedTrabajoForResenia()!.trabajo.idTrabajo"
+  [nombreProfesional]="selectedTrabajoForResenia()!.trabajo.profesional || ''"
+  (close)="cerrarModalResenia()"
+  (reseniaEnviada)="onReseniaEnviada()"
+></app-resenia-modal>
+
+<!-- Modal de Notificaciones -->
+<app-notificaciones-modal #notificacionesModal></app-notificaciones-modal>

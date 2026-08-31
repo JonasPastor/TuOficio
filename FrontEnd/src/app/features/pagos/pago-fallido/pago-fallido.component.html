@@ -1,0 +1,50 @@
+<div class="pago-resultado-container">
+  <div class="resultado-card fallido">
+    <div class="icon-wrapper">
+      <lucide-angular [img]="XCircle" [size]="80" class="icon-error"></lucide-angular>
+    </div>
+
+    <h1 class="titulo">Pago Rechazado</h1>
+    <p class="mensaje">No pudimos procesar tu pago</p>
+
+    <div class="detalles" *ngIf="paymentId || status">
+      <div class="detalle-item" *ngIf="paymentId">
+        <span class="label">ID de intento:</span>
+        <span class="valor">{{ paymentId }}</span>
+      </div>
+      <div class="detalle-item" *ngIf="status">
+        <span class="label">Estado:</span>
+        <span class="valor estado-badge error">{{ status }}</span>
+      </div>
+      <div class="detalle-item" *ngIf="statusDetail">
+        <span class="label">Detalle:</span>
+        <span class="valor">{{ statusDetail }}</span>
+      </div>
+    </div>
+
+    <div class="motivos">
+      <h3>Posibles razones:</h3>
+      <ul>
+        <li>Fondos insuficientes</li>
+        <li>Datos de la tarjeta incorrectos</li>
+        <li>Límite de compra excedido</li>
+        <li>Tarjeta bloqueada o vencida</li>
+      </ul>
+    </div>
+
+    <div class="acciones">
+      <button class="btn btn-primary" (click)="intentarNuevamente()">
+        <lucide-angular [img]="RefreshCw" [size]="18"></lucide-angular>
+        Intentar nuevamente
+      </button>
+      <button class="btn btn-secondary" (click)="volverAlInicio()">
+        <lucide-angular [img]="Home" [size]="18"></lucide-angular>
+        Volver al inicio
+      </button>
+    </div>
+
+    <div class="info-adicional">
+      <p>Si el problema persiste, contacta a tu banco o prueba con otro medio de pago</p>
+    </div>
+  </div>
+</div>

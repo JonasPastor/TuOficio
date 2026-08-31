@@ -1,0 +1,144 @@
+<div class="facturas-container">
+  <header class="page-header">
+    <button class="btn btn-outline-light back-btn mb-3" (click)="goBack()">
+      <lucide-angular [img]="ArrowLeft" size="20"></lucide-angular>
+      <span class="ms-2">Volver al Dashboard</span>
+    </button>
+    <div class="text-center mt-4">
+      <h1 class="display-5 fw-bold text-white mb-2 d-flex align-items-center justify-content-center">
+        <lucide-angular [img]="FileText" size="32" class="me-2"></lucide-angular>
+        Facturas Generadas
+      </h1>
+      <div class="title-underline mx-auto"></div>
+    </div>
+  </header>
+
+  <form class="filtro-form card shadow-sm p-4 mb-4" (ngSubmit)="cargarFacturas()">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label for="fechaDesde" class="form-label">Desde:</label>
+        <input 
+          id="fechaDesde"
+          type="datetime-local" 
+          class="form-control"
+          [(ngModel)]="fechaDesde" 
+          name="fechaDesde" 
+        />
+      </div>
+      
+      <div class="col-md-4">
+        <label for="fechaHasta" class="form-label">Hasta:</label>
+        <input 
+          id="fechaHasta"
+          type="datetime-local" 
+          class="form-control"
+          [(ngModel)]="fechaHasta" 
+          name="fechaHasta" 
+        />
+      </div>
+      
+      <div class="col-md-4">
+        <button 
+          type="submit" 
+          class="btn btn-primary w-100"
+          [disabled]="loading"
+        >
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ loading ? 'Cargando...' : 'Filtrar' }}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="facturas-content card shadow-sm">
+    <div class="card-body">
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando facturas...</p>
+      </div>
+
+      <div class="facturas-list" *ngIf="!loading">
+        <div *ngFor="let factura of getPaginatedFacturas()" class="factura-card card mb-3">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <div class="factura-icon">
+                  <lucide-angular [img]="FileText" size="24"></lucide-angular>
+                </div>
+              </div>
+              
+              <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                  <lucide-angular [img]="Calendar" size="14" class="text-muted me-2"></lucide-angular>
+                  <small class="text-muted">{{ factura.fecha | date:'dd/MM/yyyy HH:mm' }}</small>
+                </div>
+                <p class="mb-0 text-secondary">
+                  <strong>Cliente:</strong> {{ factura.cliente }}
+                </p>
+              </div>
+              
+              <div class="col-auto text-end">
+                <small class="text-muted text-uppercase d-block mb-1">Monto</small>
+                <h5 class="mb-0 fw-bold">${{ factura.monto | number:'1.2-2' }}</h5>
+                <button 
+                  class="btn btn-sm btn-outline-primary mt-2"
+                  (click)="descargarComprobante(factura.nroFactura)"
+                  title="Descargar Comprobante"
+                >
+                  <lucide-angular [img]="Download" size="16"></lucide-angular>
+                  <span class="ms-1">Descargar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="facturas.length === 0" class="alert alert-info text-center" role="alert">
+          <lucide-angular [img]="FileText" size="48" class="mb-3 text-muted"></lucide-angular>
+          <p class="mb-0">No se encontraron facturas para los criterios seleccionados.</p>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination-container" *ngIf="totalPages > 1">
+        <nav aria-label="Paginación de facturas">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                &laquo; Anterior
+              </button>
+            </li>
+            
+            <li *ngFor="let page of getPageNumbers()" 
+                class="page-item" 
+                [class.active]="page === currentPage"
+                [class.disabled]="page === -1">
+              <button 
+                *ngIf="page !== -1" 
+                class="page-link" 
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+              <span *ngIf="page === -1" class="page-link">...</span>
+            </li>
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                Siguiente &raquo;
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Página {{ currentPage }} de {{ totalPages }} - 
+            Mostrando {{ getPaginatedFacturas().length }} de {{ facturas.length }} facturas
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

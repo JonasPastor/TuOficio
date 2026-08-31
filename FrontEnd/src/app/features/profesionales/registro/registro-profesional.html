@@ -1,0 +1,281 @@
+<div class="registro-profesional-container">
+  <div class="registro-content">
+    <!-- Left Side: Form -->
+    <div class="form-section">
+      <div class="form-header">
+        <button class="back-btn" (click)="goBack()">
+          <span>←</span>
+          <span>Volver</span>
+        </button>
+        <h1 class="form-title">Registrarse como Profesional</h1>
+        <p class="form-subtitle">Complete el formulario para comenzar a ofrecer sus servicios</p>
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="successMessage()" class="alert alert-success">
+        <span>✓</span>
+        <span>{{ successMessage() }}</span>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage()" class="alert alert-error">
+        <span>✕</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
+
+      <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="registro-form">
+        <!-- ID Usuario (Hidden) -->
+        <input type="hidden" formControlName="idUsuario">
+
+        <!-- Oficio -->
+        <div class="form-group">
+          <label for="idOficio" class="form-label">
+            Selecciona tu oficio
+            <span class="required">*</span>
+          </label>
+          <select
+            id="idOficio"
+            formControlName="idOficio"
+            class="form-control"
+            [class.invalid]="isFieldInvalid('idOficio')"
+          >
+            <option value="">-- Seleccione un oficio --</option>
+            <option *ngFor="let oficio of oficios()" [value]="oficio.id">
+              {{ oficio.oficio }}
+            </option>
+          </select>
+          <span *ngIf="isFieldInvalid('idOficio')" class="error-message">
+            {{ getFieldError('idOficio') }}
+          </span>
+        </div>
+
+        <!-- Experiencia Section -->
+        <div class="form-section-title">
+          <h3>Experiencia en el Oficio</h3>
+        </div>
+
+        <!-- Fecha Desde -->
+        <div class="form-group">
+          <label for="fechaDesde" class="form-label">
+            ¿Desde cuándo ejerce este oficio?
+            <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            id="fechaDesde"
+            formControlName="fechaDesde"
+            class="form-control"
+            [class.invalid]="isFieldInvalid('fechaDesde')"
+          >
+          <span *ngIf="isFieldInvalid('fechaDesde')" class="error-message">
+            {{ getFieldError('fechaDesde') }}
+          </span>
+        </div>
+
+        <!-- Checkbox: Aún ejerce -->
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="stillWorking()"
+              (change)="onStillWorkingChange($event)"
+              class="checkbox-input"
+            >
+            <span>Aún ejerzo este oficio</span>
+          </label>
+        </div>
+
+        <!-- Fecha Hasta (solo si no ejerce actualmente) -->
+        <div class="form-group" *ngIf="!stillWorking()">
+          <label for="fechaHasta" class="form-label">
+            ¿Hasta cuándo ejerció este oficio?
+            <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            id="fechaHasta"
+            formControlName="fechaHasta"
+            class="form-control"
+            [class.invalid]="isFieldInvalid('fechaHasta')"
+          >
+          <span *ngIf="isFieldInvalid('fechaHasta')" class="error-message">
+            {{ getFieldError('fechaHasta') }}
+          </span>
+        </div>
+
+        <!-- Precio Section -->
+        <div class="form-section-title">
+          <h3>Rango de Precios</h3>
+          <p class="section-description">Defina el rango de precios según el tipo de servicio</p>
+        </div>
+
+        <div class="form-row">
+          <!-- Precio Mínimo -->
+          <div class="form-group">
+            <label for="precioMin" class="form-label">
+              Precio mínimo ($)
+              <span class="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="precioMin"
+              formControlName="precioMin"
+              class="form-control"
+              [class.invalid]="isFieldInvalid('precioMin')"
+              placeholder="1000"
+              min="0"
+            >
+            <span *ngIf="isFieldInvalid('precioMin')" class="error-message">
+              {{ getFieldError('precioMin') }}
+            </span>
+          </div>
+
+          <!-- Precio Máximo -->
+          <div class="form-group">
+            <label for="precioMax" class="form-label">
+              Precio máximo ($)
+              <span class="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="precioMax"
+              formControlName="precioMax"
+              class="form-control"
+              [class.invalid]="isFieldInvalid('precioMax')"
+              placeholder="5000"
+              min="0"
+            >
+            <span *ngIf="isFieldInvalid('precioMax')" class="error-message">
+              {{ getFieldError('precioMax') }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Error de rango de precios -->
+        <div *ngIf="registroForm.hasError('invalidPriceRange') && registroForm.touched" class="alert alert-error">
+          <span>✕</span>
+          <span>El precio máximo debe ser mayor al precio mínimo</span>
+        </div>
+
+        <!-- Especialidades Section -->
+        <div class="form-section-title">
+          <h3>Especialidades</h3>
+          <p class="section-description">Agregue las especialidades que ofrece a sus clientes</p>
+        </div>
+
+        <!-- Input para agregar especialidad -->
+        <div class="form-group">
+          <label for="nuevaEspecialidad" class="form-label">
+            Agregar especialidad
+            <span class="required">*</span>
+          </label>
+          <div class="input-with-button">
+            <input
+              type="text"
+              id="nuevaEspecialidad"
+              class="form-control"
+              placeholder="Ej: Instalación de cañerías"
+              [value]="newEspecialidad()"
+              (input)="newEspecialidad.set($any($event.target).value)"
+              (keyup.enter)="addEspecialidad()"
+            >
+            <button
+              type="button"
+              class="add-btn"
+              (click)="addEspecialidad()"
+              [disabled]="!newEspecialidad().trim()"
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de especialidades -->
+        <div class="especialidades-list" *ngIf="especialidades.length > 0">
+          <div
+            *ngFor="let especialidad of especialidades.controls; let i = index"
+            class="especialidad-item"
+          >
+            <span class="especialidad-text">{{ especialidad.value }}</span>
+            <button
+              type="button"
+              class="remove-btn"
+              (click)="removeEspecialidad(i)"
+              title="Eliminar especialidad"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Mensaje si no hay especialidades -->
+        <div *ngIf="especialidades.length === 0" class="empty-message">
+          <p>No hay especialidades agregadas. Debe agregar al menos una.</p>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="isLoading()"
+        >
+          <span *ngIf="!isLoading()">Registrarse como Profesional</span>
+          <span *ngIf="isLoading()" class="loading-spinner">
+            <span class="spinner"></span>
+            Procesando...
+          </span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Side: Image -->
+    <div class="image-section">
+      <img
+        src="assets/professionals/registro-profesional.png"
+        alt="Registro Profesional"
+        class="registro-image"
+      >
+      <div class="image-overlay">
+        <h2>Únete a nuestra red de profesionales</h2>
+        <ul class="benefits-list">
+          <li>✓ Conecta con clientes potenciales</li>
+          <li>✓ Gestiona tu disponibilidad</li>
+          <li>✓ Recibe pagos seguros</li>
+          <li>✓ Construye tu reputación</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal-overlay" *ngIf="showSuccessModal()" (click)="closeSuccessModal()">
+  <div class="modal-content success-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header success-header">
+      <h2>Registro Exitoso</h2>
+      <button class="modal-close" (click)="closeSuccessModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ modalMessage() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-accept-btn success-btn" (click)="closeSuccessModal()">Ir al Inicio</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Error -->
+<div class="modal-overlay" *ngIf="showErrorModal()" (click)="closeErrorModal()">
+  <div class="modal-content error-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header error-header">
+      <h2>Error en el Registro</h2>
+      <button class="modal-close" (click)="closeErrorModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ modalMessage() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-accept-btn error-btn" (click)="closeErrorModal()">Cerrar</button>
+    </div>
+  </div>
+</div>

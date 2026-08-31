@@ -1,0 +1,172 @@
+<div class="modal-overlay" (click)="cerrarModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <h2>Agendar Turno</h2>
+        <p class="professional-name">
+          {{ professional.nombre }} {{ professional.apellido }} - {{ professional.oficio }}
+        </p>
+      </div>
+      <button class="close-btn" (click)="cerrarModal()" [disabled]="loading()">
+        <lucide-angular [img]="X" [size]="24"></lucide-angular>
+      </button>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" *ngIf="success()">
+      <lucide-angular [img]="CheckCircle" [size]="48" class="success-icon"></lucide-angular>
+      <h3>¡Turno Confirmado!</h3>
+      <p>Tu turno ha sido agendado exitosamente</p>
+    </div>
+
+    <!-- PASO 1: Selección de Turno -->
+    <div class="modal-body" *ngIf="!success() && paso() === 'seleccion-turno'">
+      <!-- Configuración -->
+      <div class="config-section">
+        <div class="form-group">
+          <label>
+            <lucide-angular [img]="Calendar" [size]="16"></lucide-angular>
+            Semana
+          </label>
+          <div class="week-selector">
+            <button
+              class="week-btn"
+              (click)="cambiarSemana('anterior')"
+              [disabled]="loading()">
+              ← Anterior
+            </button>
+            <span class="week-display">{{ formatearFecha(fechaInicio()) }}</span>
+            <button
+              class="week-btn"
+              (click)="cambiarSemana('siguiente')"
+              [disabled]="loading()">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <lucide-angular [img]="Clock" [size]="16"></lucide-angular>
+            Duración
+          </label>
+          <select
+            [ngModel]="duracion()"
+            (ngModelChange)="duracion.set($event); cargarTurnos()"
+            [disabled]="loading()">
+            <option [value]="30">30 minutos</option>
+            <option [value]="60">1 hora</option>
+            <option [value]="90">1.5 horas</option>
+            <option [value]="120">2 horas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="error()">
+        <lucide-angular [img]="AlertCircle" [size]="20"></lucide-angular>
+        <span>{{ error() }}</span>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-container" *ngIf="loading() && !success()">
+        <div class="spinner"></div>
+        <p>Cargando turnos disponibles...</p>
+      </div>
+
+      <!-- Turnos Disponibles -->
+      <div class="turnos-section" *ngIf="!loading() && turnosDisponibles().length > 0">
+        <h3>Turnos Disponibles</h3>
+
+        <div class="turnos-por-dia" *ngFor="let grupo of agruparTurnosPorFecha()">
+          <div class="dia-header">
+            <span class="dia-nombre">{{ formatearFecha(grupo.fecha) }}</span>
+          </div>
+
+          <div class="turnos-grid">
+            <button
+              *ngFor="let turno of grupo.turnos"
+              class="turno-card"
+              [class.selected]="turnoSeleccionado() === turno"
+              (click)="seleccionarTurno(turno)"
+              [disabled]="loading()">
+              <span class="turno-hora">{{ formatearHora(turno.horaInicio) }}</span>
+              <span class="turno-hasta">{{ formatearHora(turno.horaFin) }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2: Observación -->
+    <div class="modal-body" *ngIf="!success() && paso() === 'observacion'">
+      <!-- Resumen del turno seleccionado -->
+      <div class="turno-seleccionado-resumen">
+        <h3>Turno Seleccionado</h3>
+        <div class="resumen-card">
+          <div class="resumen-item">
+            <lucide-angular [img]="Calendar" [size]="20"></lucide-angular>
+            <span>{{ formatearFecha(turnoSeleccionado()!.fecha) }}</span>
+          </div>
+          <div class="resumen-item">
+            <lucide-angular [img]="Clock" [size]="20"></lucide-angular>
+            <span>{{ formatearHora(turnoSeleccionado()!.horaInicio) }} - {{ formatearHora(turnoSeleccionado()!.horaFin) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="error()">
+        <lucide-angular [img]="AlertCircle" [size]="20"></lucide-angular>
+        <span>{{ error() }}</span>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="form-group observacion">
+        <label>Descripción del trabajo <span class="required">*</span></label>
+        <textarea
+          [ngModel]="observacion()"
+          (ngModelChange)="observacion.set($event)"
+          placeholder="Describe brevemente el servicio que necesitas del profesional..."
+          rows="4"
+          [disabled]="loading()"
+          class="form-control">
+        </textarea>
+        <small class="form-text">Por favor, proporciona detalles sobre el trabajo que necesitas realizar.</small>
+      </div>
+    </div>
+
+    <!-- Footer - Paso 1 -->
+    <div class="modal-footer" *ngIf="!success() && paso() === 'seleccion-turno'">
+      <button
+        class="btn btn-secondary"
+        (click)="cerrarModal()"
+        [disabled]="loading()">
+        Cancelar
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="continuarAObservacion()"
+        [disabled]="!turnoSeleccionado() || loading()">
+        Continuar
+      </button>
+    </div>
+
+    <!-- Footer - Paso 2 -->
+    <div class="modal-footer" *ngIf="!success() && paso() === 'observacion'">
+      <button
+        class="btn btn-secondary"
+        (click)="volverASeleccionTurno()"
+        [disabled]="loading()">
+        Volver
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="confirmarTurno()"
+        [disabled]="!observacion().trim() || loading()">
+        {{ loading() ? 'Confirmando...' : 'Confirmar Turno' }}
+      </button>
+    </div>
+  </div>
+</div>

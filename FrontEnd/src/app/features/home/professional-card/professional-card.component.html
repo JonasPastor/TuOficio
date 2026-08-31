@@ -1,0 +1,95 @@
+<div class="professional-card">
+  <!-- Professional Image -->
+  <div class="professional-image">
+    <img
+      [src]="professional.avatar || 'assets/logos/logo.png'"
+      [alt]="professionalName"
+      onerror="this.src='assets/logos/logo.png'">
+  </div>
+
+  <!-- Professional Content -->
+  <div class="professional-content">
+    <!-- Header -->
+    <div class="professional-header">
+      <h3 class="professional-name">{{ professionalName }}</h3>
+      <span class="professional-trade">{{ professional.oficio }}</span>
+      
+      <!-- Rating -->
+      <div class="professional-rating" *ngIf="professional.puntuacionPromedio">
+        <lucide-angular [img]="Star" [size]="16" class="star-icon"></lucide-angular>
+        <span class="rating-value">{{ professional.puntuacionPromedio }}</span>
+        <span class="review-count" *ngIf="professional.cantidadResenias">({{ professional.cantidadResenias }})</span>
+      </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="contact-info">
+      <div class="info-item">
+        <lucide-angular [img]="Phone" [size]="16" class="info-icon"></lucide-angular>
+        <span>{{ professional.telefono }}</span>
+      </div>
+      <div class="info-item">
+        <lucide-angular [img]="DollarSign" [size]="16" class="info-icon"></lucide-angular>
+        <span>{{ professional.rangoPrecio }}</span>
+      </div>
+    </div>
+
+    <!-- Disponibilidad Section -->
+    <div class="availability-section" *ngIf="hasAvailability">
+      <div class="section-header">
+        <lucide-angular [img]="Calendar" [size]="16" class="section-icon"></lucide-angular>
+        <span class="section-title">Disponibilidad</span>
+      </div>
+
+      <div class="availability-list">
+        <!-- Preview (primeros 3) -->
+        <div
+          *ngFor="let slot of showFullSchedule ? sortedDisponibilidad : availabilityPreview"
+          class="availability-item">
+          <span class="day-badge">{{ formatDayName(slot.diaSemana) }}</span>
+          <span class="time-range">
+            {{ formatTime(slot.horaInicio) }} - {{ formatTime(slot.horaFin) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Toggle button -->
+      <button
+        *ngIf="hasMoreAvailability"
+        class="toggle-schedule-btn"
+        (click)="toggleSchedule()">
+        {{ showFullSchedule ? 'Ver menos' : `Ver más (${sortedDisponibilidad.length - 3})` }}
+      </button>
+    </div>
+
+    <!-- No Availability Message -->
+    <!-- <div class="no-availability" *ngIf="!hasAvailability">
+      <lucide-angular [img]="Clock" [size]="16" class="info-icon"></lucide-angular>
+      <span>Disponibilidad no especificada</span>
+    </div> -->
+
+    <!-- Especialidades -->
+    <div class="specialties-section" *ngIf="hasSpecialties">
+      <div class="section-header">
+        <span class="section-title">Especialidades</span>
+      </div>
+      <div class="specialties-list">
+        <span *ngFor="let specialty of professional.especialidades" class="specialty-tag">
+          {{ specialty }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="professional-footer">
+      <button class="profile-btn" (click)="onViewProfile()">
+        <lucide-angular [img]="Eye" [size]="18"></lucide-angular>
+        <span>Ver perfil</span>
+      </button>
+      <button class="contact-btn" (click)="onContact()">
+        <lucide-angular [img]="User" [size]="18"></lucide-angular>
+        <span>Contactar</span>
+      </button>
+    </div>
+  </div>
+</div>

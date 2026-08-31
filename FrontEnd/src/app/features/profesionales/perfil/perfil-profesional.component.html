@@ -1,0 +1,273 @@
+<div class="perfil-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <p>{{ error }}</p>
+    <button class="back-btn" (click)="goBack()">
+      <lucide-angular [img]="ArrowLeft" [size]="20"></lucide-angular>
+      Volver
+    </button>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="profesional && !loading" class="profile-content">
+    <!-- Header -->
+    <header class="profile-header">
+      <div class="header-top">
+        <button class="btn btn-outline-light back-btn" (click)="goBack()">
+          <lucide-angular [img]="ArrowLeft" [size]="20"></lucide-angular>
+          <span class="ms-2">Volver al Inicio</span>
+        </button>
+        <button *ngIf="!isOwnProfile" class="report-button" (click)="openReportModal()" title="Reportar profesional">
+          <lucide-angular [img]="Flag" [size]="20"></lucide-angular>
+        </button>
+      </div>
+      <div class="text-center">
+        <h1 class="display-5 fw-bold text-white mb-2">Perfil Profesional</h1>
+        <div class="title-underline mx-auto"></div>
+      </div>
+    </header>
+
+    <!-- Professional Info Card -->
+    <div class="info-card">
+      <!-- Avatar Section -->
+      <div class="avatar-section">
+        <div class="avatar-container">
+          <img
+            [src]="profesional.avatar || 'assets/logos/logo.png'"
+            [alt]="professionalName"
+            onerror="this.src='assets/logos/logo.png'">
+        </div>
+        <div class="name-section">
+          <h2 class="professional-name">{{ professionalName }}</h2>
+          <span class="professional-trade">{{ profesional.oficio }}</span>
+          
+          <!-- Rating -->
+          <div class="rating-badge" *ngIf="profesional.puntuacionPromedio">
+            <lucide-angular [img]="Star" [size]="18" class="star-icon"></lucide-angular>
+            <span class="rating-value">{{ profesional.puntuacionPromedio }}</span>
+            <span class="review-count" *ngIf="profesional.cantidadResenias">({{ profesional.cantidadResenias }} reseñas)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="contact-section">
+        <div class="info-item">
+          <lucide-angular [img]="Phone" [size]="20" class="icon"></lucide-angular>
+          <div class="info-text">
+            <span class="label">Teléfono</span>
+            <span class="value">{{ profesional.telefono }}</span>
+          </div>
+        </div>
+        <div class="info-item">
+          <lucide-angular [img]="Mail" [size]="20" class="icon"></lucide-angular>
+          <div class="info-text">
+            <span class="label">Email</span>
+            <span class="value">{{ profesional.email || 'No especificado' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Specialties Section -->
+    <div class="section-card" *ngIf="hasSpecialties">
+      <div class="section-header">
+        <lucide-angular [img]="Award" [size]="24" class="section-icon"></lucide-angular>
+        <h3>Especialidades</h3>
+      </div>
+      <div class="specialties-grid">
+        <span *ngFor="let specialty of profesional.especialidades" class="specialty-chip">
+          {{ specialty }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Availability Section -->
+    <div class="section-card" *ngIf="hasAvailability">
+      <div class="section-header">
+        <lucide-angular [img]="Calendar" [size]="24" class="section-icon"></lucide-angular>
+        <h3>Disponibilidad</h3>
+      </div>
+      <div class="availability-grid">
+        <div *ngFor="let slot of sortedDisponibilidad" class="availability-item">
+          <div class="day-label">
+            <lucide-angular [img]="Clock" [size]="16" class="day-icon"></lucide-angular>
+            <span class="day-name">{{ formatDayName(slot.diaSemana) }}</span>
+          </div>
+          <div class="time-range">
+            {{ formatTime(slot.horaInicio) }} - {{ formatTime(slot.horaFin) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo Gallery Section -->
+    <div class="section-card gallery-section">
+      <div class="section-header">
+        <lucide-angular [img]="Image" [size]="24" class="section-icon"></lucide-angular>
+        <h3>Galería de Trabajos</h3>
+        <button *ngIf="isOwnProfile" class="upload-btn" (click)="openUploadModal()">
+          <lucide-angular [img]="Plus" [size]="18"></lucide-angular>
+          <span>Agregar foto</span>
+        </button>
+      </div>
+      
+      <!-- Gallery Grid -->
+      <div *ngIf="fotosGaleria.length > 0" class="gallery-grid">
+        <div *ngFor="let foto of fotosGaleria" class="gallery-item">
+          <img [src]="foto.urlFoto" [alt]="foto.descripcion || 'Trabajo realizado'" class="gallery-image">
+          <button *ngIf="isOwnProfile" class="delete-foto-btn" (click)="eliminarFoto(foto)">
+            <lucide-angular [img]="X" [size]="16"></lucide-angular>
+          </button>
+          <div *ngIf="foto.descripcion" class="foto-descripcion">
+            {{ foto.descripcion }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Empty State -->
+      <div *ngIf="fotosGaleria.length === 0" class="gallery-placeholder">
+        <lucide-angular [img]="Image" [size]="48" class="placeholder-icon"></lucide-angular>
+        <p class="placeholder-text" *ngIf="!isOwnProfile">Este profesional aún no ha agregado fotos</p>
+        <p class="placeholder-text" *ngIf="isOwnProfile">Agrega fotos de tus trabajos para mostrar tu experiencia</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div *ngIf="showReportModal" class="modal-overlay" (click)="closeReportModal()">
+  <div class="modal-content report-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-with-icon">
+        <lucide-angular [img]="Flag" [size]="24" class="header-icon"></lucide-angular>
+        <h3>Reportar Profesional</h3>
+      </div>
+      <button class="close-btn" (click)="closeReportModal()">
+        <lucide-angular [img]="X" [size]="24"></lucide-angular>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <p class="report-description">
+        ¿Por qué deseas reportar a <strong>{{ professionalName }}</strong>? 
+        Tu reporte será enviado al administrador para su revisión.
+      </p>
+
+      <!-- Report Reason -->
+      <div class="form-group">
+        <label for="reportReason">Razón del reporte *</label>
+        <textarea 
+          id="reportReason" 
+          [(ngModel)]="reportReason" 
+          placeholder="Describe el motivo del reporte (mínimo 10 caracteres)..."
+          rows="5"
+          class="form-input"
+          [disabled]="sendingReport"
+          maxlength="500"></textarea>
+        <small class="char-count">{{ reportReason.length }}/500 caracteres</small>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="reportError" class="error-message">
+        {{ reportError }}
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeReportModal()" [disabled]="sendingReport">
+        Cancelar
+      </button>
+      <button 
+        class="btn-danger" 
+        (click)="enviarReporte()" 
+        [disabled]="!reportReason.trim() || reportReason.trim().length < 10 || sendingReport">
+        <lucide-angular *ngIf="!sendingReport" [img]="Flag" [size]="18"></lucide-angular>
+        <span>{{ sendingReport ? 'Enviando...' : 'Enviar reporte' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div *ngIf="showSuccessModal" class="success-overlay">
+  <div class="success-modal">
+    <div class="success-icon">
+      <lucide-angular [img]="CheckCircle" [size]="48"></lucide-angular>
+    </div>
+    <h3>¡Reporte enviado!</h3>
+    <p>El administrador ha sido notificado y revisará tu reporte.</p>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div *ngIf="showUploadModal" class="modal-overlay" (click)="closeUploadModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Agregar foto</h3>
+      <button class="close-btn" (click)="closeUploadModal()">
+        <lucide-angular [img]="X" [size]="24"></lucide-angular>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- File Upload -->
+      <div class="form-group">
+        <label for="fotoFile" class="file-label">
+          <lucide-angular [img]="Upload" [size]="24"></lucide-angular>
+          <span>{{ selectedFile ? selectedFile.name : 'Seleccionar imagen' }}</span>
+        </label>
+        <input 
+          type="file" 
+          id="fotoFile" 
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          class="file-input"
+          [disabled]="uploadingFoto">
+        <small class="file-hint">Formatos: JPG, PNG, GIF, WEBP. Máximo 5MB</small>
+      </div>
+      
+      <!-- Error Message -->
+      <div *ngIf="uploadError" class="error-message">
+        {{ uploadError }}
+      </div>
+      
+      <!-- Preview -->
+      <div *ngIf="previewUrl" class="preview">
+        <p class="preview-label">Vista previa:</p>
+        <img [src]="previewUrl" alt="Preview" class="preview-image">
+      </div>
+      
+      <!-- Description -->
+      <div class="form-group" *ngIf="selectedFile">
+        <label for="fotoDesc">Descripción (opcional)</label>
+        <textarea 
+          id="fotoDesc" 
+          [(ngModel)]="nuevaFotoDescripcion" 
+          placeholder="Describe el trabajo realizado"
+          rows="3"
+          class="form-input"
+          [disabled]="uploadingFoto"></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeUploadModal()" [disabled]="uploadingFoto">
+        Cancelar
+      </button>
+      <button 
+        class="btn-primary" 
+        (click)="agregarFoto()" 
+        [disabled]="!selectedFile || uploadingFoto">
+        <lucide-angular *ngIf="!uploadingFoto" [img]="Upload" [size]="18"></lucide-angular>
+        <span>{{ uploadingFoto ? 'Subiendo...' : 'Subir foto' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

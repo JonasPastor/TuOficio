@@ -1,0 +1,39 @@
+<div class="pago-resultado-container">
+  <div class="resultado-card exitoso">
+    <div class="icon-wrapper">
+      <lucide-angular [img]="CheckCircle" [size]="80" class="icon-success"></lucide-angular>
+    </div>
+
+    <h1 class="titulo">¡Pago Exitoso!</h1>
+    <p class="mensaje">Tu pago ha sido procesado correctamente</p>
+
+    <div class="detalles" *ngIf="paymentId">
+      <div class="detalle-item">
+        <span class="label">ID de pago:</span>
+        <span class="valor">{{ paymentId }}</span>
+      </div>
+      <div class="detalle-item" *ngIf="status">
+        <span class="label">Estado:</span>
+        <span class="valor estado-badge">{{ status }}</span>
+      </div>
+      <div class="detalle-item" *ngIf="externalReference">
+        <span class="label">Referencia:</span>
+        <span class="valor">{{ externalReference }}</span>
+      </div>
+    </div>
+
+    <div class="acciones">
+      <button class="btn btn-primary" (click)="volverAlInicio()">
+        <lucide-angular [img]="Home" [size]="18"></lucide-angular>
+        Volver al inicio
+      </button>
+      <button class="btn btn-secondary" (click)="verMisSolicitudes()">
+        Ver mis solicitudes
+      </button>
+    </div>
+
+    <div class="info-adicional">
+      <p>Recibirás un comprobante por correo electrónico</p>
+    </div>
+  </div>
+</div>
